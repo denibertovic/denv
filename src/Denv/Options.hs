@@ -22,7 +22,7 @@ kubeNamespaceOpt = optional $ strOption (
 kubeProjectOpt = strOption (
                    long "kube-project"
                    <> short 'p'
-                   <> metavar "NAMESPACE"
+                   <> metavar "YAMLPATH"
                    <> help "Full path to kube config yaml file")
 
 cmdKube = command "kube" infos
