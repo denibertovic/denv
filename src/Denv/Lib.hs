@@ -1,6 +1,7 @@
 module Denv.Lib where
 
 import           Control.Monad         (mapM_, unless, when)
+import           Data.Maybe            (fromMaybe, maybe)
 import           Data.Text             as T
 import           System.Directory      (doesFileExist)
 import           System.Directory      (getCurrentDirectory)
@@ -18,14 +19,15 @@ entrypoint (DenvArgs (Kube p n)) = mkKubeEnv p n
 entrypoint (DenvArgs Deactivate) = deactivateEnv
 
 
-mkKubeEnv :: KubeProjectName -> KubeNamespace -> IO ()
+mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
 mkKubeEnv p n = do
     exists <- doesFileExist p
     unless exists (die $ "ERROR: Kubeconfig does not exits: " ++ p)
     let p' = takeFileName p
+    let n' = fromMaybe "default" n
     putStrLn $ set $ EnvVar "KUBECONFIG" p
     putStrLn $ set $ EnvVar "KUBECONFIG_SHORT" p'
-    putStrLn $ set $ EnvVar "KUBECTL_NAMESPACE" n
+    putStrLn $ set $ EnvVar "KUBECTL_NAMESPACE" n'
     putStrLn $ set $ EnvVar "_OLD_DENV_PS1" "\"$PS1\""
     putStrLn $ set $ EnvVar "PS1" "\"%F{blue}k8s%f%F{blue}%f|%F{red}$KUBECTL_NAMESPACE%f|%F{red}$KUBECONFIG_SHORT%f $PS1\""
 

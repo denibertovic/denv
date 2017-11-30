@@ -10,10 +10,10 @@ import           Options.Applicative
 data DenvArgs = DenvArgs { denvCommand :: Command }
 
 
-data Command = Kube KubeProjectName KubeNamespace
+data Command = Kube KubeProjectName (Maybe KubeNamespace)
              | Deactivate
 
-kubeNamespaceOpt = strOption (
+kubeNamespaceOpt = optional $ strOption (
                      long "kube-namespace"
                      <> short 'n'
                      <> metavar "NAMESPACE"
