@@ -18,3 +18,13 @@ Run command:
 
   k get pods
 
+## Pass env
+
+Requires that you have [pass](https://www.passwordstore.org/) installed.
+
+  denv pass
+
+Or
+
+  denv pass -p /path/to/password-store
+
