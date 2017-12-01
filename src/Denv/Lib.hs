@@ -1,15 +1,15 @@
 module Denv.Lib where
 
 import           Control.Monad         (mapM_, unless, when)
+import           Data.List             (intercalate)
 import           Data.Maybe            (fromMaybe, maybe)
-import           Data.Text             as T
 import           System.Directory      (doesDirectoryExist, doesFileExist)
 import           System.Directory      (getCurrentDirectory)
 import           System.Directory      (getCurrentDirectory)
 import           System.Environment    (getEnv, unsetEnv)
 import           System.Exit           (die)
 import           System.FilePath       ((</>))
-import           System.FilePath.Posix (takeBaseName, takeFileName)
+import           System.FilePath.Posix (splitPath, takeBaseName, takeFileName)
 import           Text.Printf           (printf)
 
 import           Denv.Options
@@ -26,9 +26,12 @@ mkPassEnv p = do
     let p' = fromMaybe curDirPath p
     exists <- doesDirectoryExist p'
     unless exists (die $ "ERROR: Password store does not exist: " ++ p')
+    let xs = splitPath p'
+    let p'' = intercalate "" $ drop (length xs - 2) xs
     putStrLn $ set $ EnvVar "PASSWORD_STORE_DIR" p'
+    putStrLn $ set $ EnvVar "PASSWORD_STORE_DIR_SHORT" p''
     putStrLn $ set $ EnvVar "_OLD_DENV_PS1" "\"$PS1\""
-    putStrLn $ set $ EnvVar "PS1" "\"%F{blue}pass%f%F{blue}%f|%F{red}$PASSWORD_STORE_DIR%f $PS1\""
+    putStrLn $ set $ EnvVar "PS1" "\"%F{blue}pass%f%F{blue}%f|%F{red}$PASSWORD_STORE_DIR_SHORT%f $PS1\""
 
 mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
 mkKubeEnv p n = do
@@ -51,6 +54,7 @@ deactivateEnv = do
     putStrLn $ unset $ EnvVar "KUBECONFIG_SHORT" ""
     putStrLn $ unset $ EnvVar "KUBECTL_NAMESPACE" ""
     putStrLn $ unset $ EnvVar "PASSWORD_STORE_DIR" ""
+    putStrLn $ unset $ EnvVar "PASSWORD_STORE_DIR_SHORT" ""
 
 data EnvVar = EnvVar String String
 
