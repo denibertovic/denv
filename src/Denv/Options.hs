@@ -44,7 +44,7 @@ cmdPass = command "pass" infos
 
 cmdDeactivate = command "deactivate" infos
     where infos = info options desc
-          desc = progDesc "Deactivate environment"
+          desc = progDesc "Deactivate environment."
           options = pure Deactivate
 
 argCmds = subparser (cmdKube <> cmdPass <> cmdDeactivate)
