@@ -22,7 +22,7 @@ entrypoint (DenvArgs Deactivate) = deactivateEnv
 mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
 mkKubeEnv p n = do
     exists <- doesFileExist p
-    unless exists (die $ "ERROR: Kubeconfig does not exits: " ++ p)
+    unless exists (die $ "ERROR: Kubeconfig does not exist: " ++ p)
     let p' = takeFileName p
     let n' = fromMaybe "default" n
     putStrLn $ set $ EnvVar "KUBECONFIG" p

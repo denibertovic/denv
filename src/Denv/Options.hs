@@ -17,13 +17,13 @@ kubeNamespaceOpt = optional $ strOption (
                      long "kube-namespace"
                      <> short 'n'
                      <> metavar "NAMESPACE"
-                     <> help "Kube Namespace. Example: kube-system or default")
+                     <> help "Kube Namespace. Example: kube-system or default.")
 
 kubeProjectOpt = strOption (
                    long "kube-project"
                    <> short 'p'
                    <> metavar "YAMLPATH"
-                   <> help "Full path to kube config yaml file")
+                   <> help "Full path to kube config yaml file.")
 
 cmdKube = command "kube" infos
     where infos = info options desc

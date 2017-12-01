@@ -13,6 +13,6 @@ main = execParser opts >>= entrypoint
   where
     opts = info (helper <*> denvArgs)
       ( fullDesc
-     <> progDesc "denv - A tool to help manage environments"
-     <> header "denv - A tool to help manage environments" )
+     <> progDesc "denv - A tool to help manage environments."
+     <> header "denv - A tool to help manage environments." )
 
