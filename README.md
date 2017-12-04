@@ -4,6 +4,13 @@ A tool to help manage environments. Currently only supports setting
 kubernetes and pass environments but will likely get support for more stuff as
 the Author needs them.
 
+## How to install
+
+* Install [stack](https://docs.haskellstack.org/en/stable/README/)
+* Clone this repo
+* cd to the cloned repo and run: `stack install`
+* Add `~/.local/bin` to your PATH.
+
 ## How it works
 
 Denv uses a hook that it executes during each shell re-print. It check to see if a
