@@ -23,25 +23,35 @@ See below on how to activate different environments.
 
 Add alias to `.zshrc` or `.bashrc`:
 
-  alias k='kubectl --namespace=${KUBECTL_NAMESPACE:-default}'
+```bash
+alias k='kubectl --namespace=${KUBECTL_NAMESPACE:-default}'
+```
 
 And add the hook at the end of your `.zshrc` or `.bashrc` file:
 
-  eval "$(denv hook ZSH)"
+```bash
+eval "$(denv hook ZSH)"
+```
 
 Or
 
-  eval "$(denv hook BASH)"
+```bash
+eval "$(denv hook BASH)"
+```
 
 `NOTE`: Make sure to use all caps when choosing the SHELL.
 
 Activate kube env:
 
-  denv kube -p ~/.kube/my-cluster.yaml -n kube-system
+```bash
+denv kube -p ~/.kube/my-cluster.yaml -n kube-system
+```
 
 Run command:
 
-  k get pods
+```bash
+k get pods
+```
 
 ## Pass env
 
@@ -49,15 +59,21 @@ Requires that you have [pass](https://www.passwordstore.org/) installed.
 
 Use the current dir as the password store:
 
-  denv pass
+```bash
+denv pass
+```
 
 Or specify a path to the password store:
 
-  denv pass -p /path/to/password-store
+```bash
+denv pass -p /path/to/password-store
+```
 
 ## Deactivate env
 
-  denv deactivate
+```bash
+denv deactivate
+```
 
 ## LIMITATIONS
 
