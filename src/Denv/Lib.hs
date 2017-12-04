@@ -40,7 +40,7 @@ mkPassEnv p = do
     TIO.writeFile rc (set $ EnvVar "PASSWORD_STORE_DIR" p')
     TIO.appendFile rc (set $ EnvVar "PASSWORD_STORE_DIR_SHORT" p'')
     TIO.appendFile rc (set $ EnvVar "_OLD_DENV_PS1" "\"$PS1\"")
-    TIO.appendFile rc (set $ EnvVar "PS1" "\"%F{blue}pass%f%F{blue}%f|%F{red}$PASSWORD_STORE_DIR_SHORT%f $PS1\"")
+    TIO.appendFile rc (set $ EnvVar "PS1" "\"pass|$PASSWORD_STORE_DIR_SHORT $PS1\"")
 
 mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
 mkKubeEnv p n = do
@@ -54,7 +54,7 @@ mkKubeEnv p n = do
     TIO.appendFile rc (set $ EnvVar "KUBECONFIG_SHORT" p')
     TIO.appendFile rc (set $ EnvVar "KUBECTL_NAMESPACE" n')
     TIO.appendFile rc (set $ EnvVar "_OLD_DENV_PS1" "\"$PS1\"")
-    TIO.appendFile rc (set $ EnvVar "PS1" "\"%F{blue}k8s%f%F{blue}%f|%F{red}$KUBECTL_NAMESPACE%f|%F{red}$KUBECONFIG_SHORT%f $PS1\"")
+    TIO.appendFile rc (set $ EnvVar "PS1" "\"k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1\"")
 
 
 deactivateEnv :: IO ()
