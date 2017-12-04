@@ -13,6 +13,8 @@ data DenvArgs = DenvArgs { denvCommand :: Command }
 data Command = Kube KubeProjectName (Maybe KubeNamespace)
              | Pass (Maybe PasswordStorePath)
              | Deactivate
+             | Hook Shell
+             | Export Shell
 
 passPathOpt = optional $ strOption (
                      long "password-store-path"
@@ -47,7 +49,18 @@ cmdDeactivate = command "deactivate" infos
           desc = progDesc "Deactivate environment."
           options = pure Deactivate
 
-argCmds = subparser (cmdKube <> cmdPass <> cmdDeactivate)
+cmdHook = command "hook" infos
+    where infos = info options desc
+          desc = progDesc "Used to setupt the shell hook."
+          options = Hook <$> argument auto (metavar "SHELL")
+
+cmdExport = command "export" infos
+    where infos = info options desc
+          desc = progDesc "Exports the needed environment variables. Used internally."
+          options = Export <$> argument auto (metavar "SHELL")
+
+
+argCmds = subparser (cmdKube <> cmdPass <> cmdDeactivate <> cmdHook <> cmdExport)
 
 denvArgs :: Parser DenvArgs
 denvArgs = DenvArgs <$> argCmds
