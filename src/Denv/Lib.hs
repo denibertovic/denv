@@ -11,11 +11,10 @@ import           System.Directory      (doesDirectoryExist, doesFileExist,
                                         getHomeDirectory, removeFile)
 import           System.Directory      (getCurrentDirectory)
 import           System.Directory      (getCurrentDirectory)
-import           System.Environment    (getEnv, unsetEnv)
+import           System.Environment    (getEnv, lookupEnv, unsetEnv)
 import           System.Exit           (die, exitSuccess)
 import           System.FilePath       ((</>))
 import           System.FilePath.Posix (splitPath, takeBaseName, takeFileName)
-import           Text.Printf           (printf)
 
 import           Denv.Options
 import           Denv.Types
@@ -27,6 +26,8 @@ entrypoint (DenvArgs Deactivate) = deactivateEnv
 entrypoint (DenvArgs (Hook s))   = execHook s
 entrypoint (DenvArgs (Export s)) = execExport s
 
+ps1 = "\"$PS1\""
+
 mkPassEnv :: Maybe PasswordStorePath -> IO ()
 mkPassEnv p = do
     curDirPath <- getCurrentDirectory
@@ -37,10 +38,12 @@ mkPassEnv p = do
     unless exists (die $ "ERROR: Password store does not exist: " ++ p')
     let xs = splitPath p'
     let p'' = intercalate "" $ drop (length xs - 2) xs
-    TIO.writeFile rc (set $ EnvVar "PASSWORD_STORE_DIR" p')
-    TIO.appendFile rc (set $ EnvVar "PASSWORD_STORE_DIR_SHORT" p'')
-    TIO.appendFile rc (set $ EnvVar "_OLD_DENV_PS1" "\"$PS1\"")
-    TIO.appendFile rc (set $ EnvVar "PS1" "\"pass|$PASSWORD_STORE_DIR_SHORT $PS1\"")
+    let env = [ EnvVar PasswordStoreDir p'
+              , EnvVar PasswordStoreDirShort p''
+              , EnvVar OldPrompt ps1
+              , EnvVar Prompt "\"pass|$PASSWORD_STORE_DIR_SHORT $PS1\""
+              ]
+    TIO.writeFile rc (toEnv env)
 
 mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
 mkKubeEnv p n = do
@@ -50,24 +53,35 @@ mkKubeEnv p n = do
     let rc = h </> ".denv"
     let p' = takeFileName p
     let n' = fromMaybe "default" n
-    TIO.writeFile rc (set $ EnvVar "KUBECONFIG" p)
-    TIO.appendFile rc (set $ EnvVar "KUBECONFIG_SHORT" p')
-    TIO.appendFile rc (set $ EnvVar "KUBECTL_NAMESPACE" n')
-    TIO.appendFile rc (set $ EnvVar "_OLD_DENV_PS1" "\"$PS1\"")
-    TIO.appendFile rc (set $ EnvVar "PS1" "\"k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1\"")
-
+    let env =  [ EnvVar KubeConfig p
+               , EnvVar KubeConfigShort p'
+               , EnvVar KubectlNamespace n'
+               , EnvVar OldPrompt ps1
+               , EnvVar Prompt "\"k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1\""
+               ]
+    TIO.writeFile rc (toEnv env)
 
 deactivateEnv :: IO ()
 deactivateEnv = do
     h <- getHomeDirectory
     let rc = h </> ".denv"
-    TIO.writeFile rc (set $ EnvVar "PS1" "\"$_OLD_DENV_PS1\"")
-    TIO.appendFile rc (unset $ EnvVar "_OLD_DENV_PS1" "")
-    TIO.appendFile rc (unset $ EnvVar "KUBECONFIG" "")
-    TIO.appendFile rc (unset $ EnvVar "KUBECONFIG_SHORT" "")
-    TIO.appendFile rc (unset $ EnvVar "KUBECTL_NAMESPACE" "")
-    TIO.appendFile rc (unset $ EnvVar "PASSWORD_STORE_DIR" "")
-    TIO.appendFile rc (unset $ EnvVar "PASSWORD_STORE_DIR_SHORT" "")
+    oldPrompt <- lookupEnv "_OLD_DENV_PS1"
+    let restorePrompt = [EnvVar Prompt "\"$_OLD_DENV_PS1\""]
+    let env = [ Unset OldPrompt
+              , Unset KubeConfig
+              , Unset KubeConfigShort
+              , Unset KubectlNamespace
+              , Unset PasswordStoreDir
+              , Unset PasswordStoreDirShort
+              ]
+    -- We only restore the prompt if oldPrompt is present otherwise
+    -- we would set the prompt to nothing (empty string). This makes
+    -- the deactivate command idempotent.
+    case oldPrompt of
+      Nothing -> do
+        TIO.writeFile rc (toEnv env)
+      Just _  -> do
+        TIO.writeFile rc (toEnv $ restorePrompt ++ env)
 
 execHook :: Shell -> IO ()
 execHook BASH = putStrLn bashHook
@@ -107,14 +121,4 @@ bashHook = unlines [
   , "  PROMPT_COMMAND=\"_denv_hook;$PROMPT_COMMAND\";"
   , "fi"
   ]
-
-data EnvVar = EnvVar String String
-
-class Envify a where
-    set :: a -> T.Text
-    unset :: a -> T.Text
-
-instance Envify EnvVar where
-    set (EnvVar k v) = T.pack $ "export " ++ k ++ "=" ++ v ++ ";" ++ "\n"
-    unset (EnvVar k _) = T.pack $ "unset " ++ k ++ ";" ++ "\n"
 

@@ -16,6 +16,7 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Denv.Lib, Denv.Types, Denv.Options
+  other-modules:       Paths_denv
   build-depends:       base >= 4.7 && < 5
                      , optparse-applicative
                      , text

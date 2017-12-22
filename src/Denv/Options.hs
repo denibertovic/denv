@@ -3,8 +3,10 @@
 module Denv.Options where
 
 import           Data.Semigroup      ((<>))
+import           Data.Version        (showVersion)
 import           Denv.Types
 import           Options.Applicative
+import           Paths_denv          (version)
 
 
 data DenvArgs = DenvArgs { denvCommand :: Command }
@@ -15,6 +17,12 @@ data Command = Kube KubeProjectName (Maybe KubeNamespace)
              | Deactivate
              | Hook Shell
              | Export Shell
+
+
+versionOpt = infoOption (showVersion version) (
+               long "version"
+               <> short 'v'
+               <> help "Show version.")
 
 passPathOpt = optional $ strOption (
                      long "password-store-path"
