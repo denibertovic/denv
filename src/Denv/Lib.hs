@@ -1,32 +1,55 @@
 {-# LANGUAGE OverloadedStrings #-}
-
 module Denv.Lib where
 
-import           Control.Monad         (mapM_, unless, when)
-import           Data.List             (intercalate)
-import           Data.Maybe            (fromMaybe, maybe)
-import qualified Data.Text             as T
-import qualified Data.Text.IO          as TIO
-import           System.Directory      (doesDirectoryExist, doesFileExist,
-                                        getHomeDirectory, removeFile)
-import           System.Directory      (getCurrentDirectory)
-import           System.Directory      (getCurrentDirectory)
-import           System.Environment    (getEnv, lookupEnv, unsetEnv)
-import           System.Exit           (die, exitSuccess)
-import           System.FilePath       ((</>))
-import           System.FilePath.Posix (splitPath, takeBaseName, takeFileName)
+import           Control.Monad                        (mapM_, unless, when)
+import           Data.List                            (intercalate)
+import           Data.Maybe                           (fromMaybe, maybe)
+import           Data.Monoid                          ((<>))
+import qualified Data.Text                            as T
+import qualified Data.Text.IO                         as TIO
+import           Network.HTTP.Client.Conduit.Download (download)
+import           System.Directory                     (doesDirectoryExist,
+                                                       doesFileExist,
+                                                       getHomeDirectory,
+                                                       removeFile, renameFile)
+import           System.Directory                     (getCurrentDirectory)
+import           System.Directory                     (getCurrentDirectory)
+import           System.Environment                   (getEnv, lookupEnv,
+                                                       unsetEnv)
+import           System.Exit                          (die, exitSuccess)
+import           System.FilePath                      ((</>))
+import           System.FilePath.Posix                (splitPath, takeBaseName,
+                                                       takeFileName)
 
 import           Denv.Options
 import           Denv.Types
 
 entrypoint :: DenvArgs -> IO ()
-entrypoint (DenvArgs (Kube p n)) = mkKubeEnv p n
-entrypoint (DenvArgs (Pass p))   = mkPassEnv p
-entrypoint (DenvArgs Deactivate) = deactivateEnv
-entrypoint (DenvArgs (Hook s))   = execHook s
-entrypoint (DenvArgs (Export s)) = execExport s
+entrypoint (DenvArgs (Kube p n))       = mkKubeEnv p n
+entrypoint (DenvArgs (Pass p))         = mkPassEnv p
+entrypoint (DenvArgs (Fetch makefile)) = fetchTemplate makefile
+entrypoint (DenvArgs (Terraform e))    = mkTerraformEnv e
+entrypoint (DenvArgs Deactivate)       = deactivateEnv
+entrypoint (DenvArgs (Hook s))         = execHook s
+entrypoint (DenvArgs (Export s))       = execExport s
 
+ps1 :: String
 ps1 = "\"$PS1\""
+
+mkTerraformEnv :: EnvironmentType -> IO ()
+mkTerraformEnv e = do
+    curDirPath <- getCurrentDirectory
+    let path = curDirPath </> show e
+    exists <- doesDirectoryExist path
+    unless exists (die $ "ERROR: Directory does not exist " ++ path)
+    c <- TIO.readFile (path </> "env")
+    h <- getHomeDirectory
+    let rc = h </> ".denv"
+    TIO.writeFile rc c
+    let env = [ EnvVar OldPrompt ps1
+              , EnvVar Prompt "\"terraform|$ENVIRONMENT $PS1\""
+              ]
+    TIO.appendFile rc (toEnv env)
 
 mkPassEnv :: Maybe PasswordStorePath -> IO ()
 mkPassEnv p = do
@@ -61,6 +84,16 @@ mkKubeEnv p n = do
                ]
     TIO.writeFile rc (toEnv env)
 
+fetchTemplate :: Maybe MakefileTemplateName -> IO ()
+fetchTemplate m = do
+  let baseUrl = "https://raw.githubusercontent.com/denibertovic/makefiles/master/"
+  case m of
+    Nothing   -> die "Please specify a template name. See here for a list of templates: https://github.com/denibertovic/makefiles"
+    Just name -> do
+      exists <- doesFileExist "Makefile"
+      when exists (renameFile "Makefile" "Makefile.old")
+      download (baseUrl <> name <> ".makefile") "Makefile"
+
 deactivateEnv :: IO ()
 deactivateEnv = do
     h <- getHomeDirectory
@@ -80,8 +113,10 @@ deactivateEnv = do
     case oldPrompt of
       Nothing -> do
         TIO.writeFile rc (toEnv env)
+        TIO.appendFile rc (unset "ENVIRONMENT")
       Just _  -> do
         TIO.writeFile rc (toEnv $ restorePrompt ++ env)
+        TIO.appendFile rc (unset "ENVIRONMENT")
 
 execHook :: Shell -> IO ()
 execHook BASH = putStrLn bashHook

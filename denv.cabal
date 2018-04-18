@@ -1,5 +1,5 @@
 name:                denv
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            A tool to help manage environments
 description:         A tool to help manage environments
 homepage:            https://github.com/denibertovic/denv#readme
@@ -22,6 +22,7 @@ library
                      , text
                      , directory
                      , filepath
+                     , simple-download
   default-language:    Haskell2010
 
 executable denv

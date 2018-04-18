@@ -5,11 +5,19 @@ module Denv.Types where
 import qualified Data.Text as T
 
 
+type MakefileTemplateName = String
 type KubeProjectName = String
 type KubeNamespace = String
 type PasswordStorePath = String
 
 data Shell = BASH | ZSH deriving (Show, Eq, Read)
+
+data EnvironmentType = Prod | Staging | Other String deriving (Eq, Read)
+
+instance Show EnvironmentType where
+    show Prod      = "prod"
+    show Staging   = "staging"
+    show (Other s) = s
 
 data DenvVariable = KubeConfig
                   | KubeConfigShort

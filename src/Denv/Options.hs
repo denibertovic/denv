@@ -3,6 +3,7 @@
 module Denv.Options where
 
 import           Data.Semigroup      ((<>))
+import qualified Data.Text           as T
 import           Data.Version        (showVersion)
 import           Denv.Types
 import           Options.Applicative
@@ -14,10 +15,16 @@ data DenvArgs = DenvArgs { denvCommand :: Command }
 
 data Command = Kube KubeProjectName (Maybe KubeNamespace)
              | Pass (Maybe PasswordStorePath)
+             | Terraform EnvironmentType
+             | Fetch (Maybe MakefileTemplateName)
              | Deactivate
              | Hook Shell
              | Export Shell
 
+readEnvironmentType :: String -> Maybe EnvironmentType
+readEnvironmentType "prod"    = Just Prod
+readEnvironmentType "staging" = Just Staging
+readEnvironmentType s         = Just $ Other s
 
 versionOpt = infoOption (showVersion version) (
                long "version"
@@ -30,6 +37,12 @@ passPathOpt = optional $ strOption (
                      <> metavar "PATH"
                      <> help "Full path to password store directory.")
 
+makeOpt = optional $ strOption (
+             long "makefile"
+             <> short 'm'
+             <> metavar "NAME"
+             <> help "Makefile template to fetch from github repo.")
+
 kubeNamespaceOpt = optional $ strOption (
                      long "kube-namespace"
                      <> short 'n'
@@ -41,6 +54,16 @@ kubeProjectOpt = strOption (
                    <> short 'p'
                    <> metavar "YAMLPATH"
                    <> help "Full path to kube config yaml file.")
+
+cmdFetch = command "fetch" infos
+    where infos = info options desc
+          desc = progDesc "Fetches various templates."
+          options = Fetch <$> makeOpt
+
+cmdTerraform = command "tf" infos
+    where infos = info options desc
+          desc = progDesc "Set terraform environment."
+          options = Terraform <$> argument (maybeReader readEnvironmentType) (metavar "ENV")
 
 cmdKube = command "kube" infos
     where infos = info options desc
@@ -68,7 +91,7 @@ cmdExport = command "export" infos
           options = Export <$> argument auto (metavar "SHELL")
 
 
-argCmds = subparser (cmdKube <> cmdPass <> cmdDeactivate <> cmdHook <> cmdExport)
+argCmds = subparser (cmdKube <> cmdPass <> cmdTerraform <> cmdDeactivate <> cmdHook <> cmdExport <> cmdFetch)
 
 denvArgs :: Parser DenvArgs
 denvArgs = DenvArgs <$> argCmds
