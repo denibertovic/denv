@@ -29,7 +29,10 @@ _denv () {
     esac
 }
 
-__fetch () {}
+__fetch () {
+    _arguments \
+        "(-m --makefile)"{-m,--makefile=}"[Makefile template]" \
+}
 
 __tf () {}
 
@@ -54,6 +57,7 @@ __denv_commands () {
         "kube[Set kube environment]" \
         "pass[Set pass environment]" \
         "tf[Set terraform environment]" \
+        "fetch[Fetch templates]" \
         "deactivate[Deactivate environment]"
 }
 
