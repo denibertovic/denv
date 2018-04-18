@@ -56,42 +56,42 @@ kubeProjectOpt = strOption (
                    <> help "Full path to kube config yaml file.")
 
 cmdFetch = command "fetch" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Fetches various templates."
           options = Fetch <$> makeOpt
 
 cmdTerraform = command "tf" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Set terraform environment."
           options = Terraform <$> argument (maybeReader readEnvironmentType) (metavar "ENV")
 
 cmdKube = command "kube" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Set kube environment."
           options = Kube <$> kubeProjectOpt <*> kubeNamespaceOpt
 
 cmdPass = command "pass" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Set pass environment."
           options = Pass <$> passPathOpt
 
 cmdDeactivate = command "deactivate" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Deactivate environment."
           options = pure Deactivate
 
 cmdHook = command "hook" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Used to setupt the shell hook."
           options = Hook <$> argument auto (metavar "SHELL")
 
 cmdExport = command "export" infos
-    where infos = info options desc
+    where infos = info (options <**> helper) desc
           desc = progDesc "Exports the needed environment variables. Used internally."
           options = Export <$> argument auto (metavar "SHELL")
 
 
-argCmds = subparser (cmdKube <> cmdPass <> cmdTerraform <> cmdDeactivate <> cmdHook <> cmdExport <> cmdFetch)
+argCmds = subparser (cmdKube <> cmdPass <> cmdTerraform <> cmdFetch <> cmdDeactivate <> cmdHook <> cmdExport)
 
 denvArgs :: Parser DenvArgs
 denvArgs = DenvArgs <$> argCmds
