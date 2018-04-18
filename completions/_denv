@@ -1,0 +1,61 @@
+#compdef denv
+
+kube_conf_dir=(~/.kube)
+
+_denv () {
+    local line
+    _arguments -C \
+        --version"[display version information]" \
+        --help"[display usage information]" \
+        "1: :__denv_commands" \
+        "*::arg:->args" \
+
+    case $line[1] in
+        kube)
+            __kube
+        ;;
+        pass)
+            __pass
+        ;;
+        tf)
+            __tf
+        ;;
+        fetch)
+            __fetch
+        ;;
+        deactivate)
+            __deactivate
+        ;;
+    esac
+}
+
+__fetch () {}
+
+__tf () {}
+
+__deactivate () {}
+
+__pass() {
+    _arguments \
+        "(-p --password-store-path)"{-p,--password-store-path=}"[Password store path]:path:_files" \
+}
+
+__kube_namespaces=(default kube-system monitoring review)
+
+__kube() {
+    _arguments \
+        "(-p --kube-project)"{-p,--kube-project=}"[Kube project]:project:_files" \
+        "(-n --kube-namespace)"{-n,--kube-namespace=}"[Kube namespace]:namespace:($__kube_namespaces)"
+}
+
+__denv_commands () {
+    _values \
+        "subcommand" \
+        "kube[Set kube environment]" \
+        "pass[Set pass environment]" \
+        "tf[Set terraform environment]" \
+        "deactivate[Deactivate environment]"
+}
+
+_denv "$@"
+

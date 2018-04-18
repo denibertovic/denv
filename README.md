@@ -79,3 +79,7 @@ denv deactivate
 
 `IMPORTANT`: `deactivate` should always be called first between invoking activate for different envs.
 
+## ZSH completions
+
+Copy `completions/_denv` to `~/.oh-my-zsh/custom/plugins/denv/_denv`
+
