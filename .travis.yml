@@ -12,7 +12,7 @@ env:
   global:
     - RUN_INTEGRATION_TESTS=1
     - STACK_ARGS=""
-    - GITHUB_RELEASE_VERSION=1.1.6
+    - GITHUB_RELEASE_VERSION=1.2.0
 
 matrix:
   include:
@@ -61,6 +61,7 @@ after_success:
     chmod a+x github-release
     stack exec -- cp $(which denv) .
     tar -czf denv.tar.gz denv
+    ./github-release release --token=$GITHUB_TOKEN --owner=denibertovic --repo=denv --title=$TRAVIS_TAG --tag=$TRAVIS_TAG
     ./github-release upload --token=$GITHUB_TOKEN --owner=denibertovic --repo=denv --file=denv.tar.gz --tag=$TRAVIS_TAG --name=denv-$TRAVIS_TAG-$TRAVIS_OS_NAME-x86_64.tar.gz
   fi
 
