@@ -2,7 +2,7 @@
 
 .DEFAULT_GOAL = help
 
-VERSION ?= $(shell grep "^version:" denv.cabal | cut -d " " -f9)
+VERSION ?= $(shell grep "^version:" denv.cabal | cut -d " " -f14)
 
 ## Run build
 build:
