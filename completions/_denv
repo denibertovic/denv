@@ -17,6 +17,9 @@ _denv () {
         pass)
             __pass
         ;;
+        vault)
+            __vault
+        ;;
         tf)
             __tf
         ;;
@@ -43,6 +46,11 @@ __pass() {
         "(-p --password-store-path)"{-p,--password-store-path=}"[Password store path]:path:_files" \
 }
 
+__vault() {
+    _arguments \
+        "(-p --vault-project)"{-p,--vault-project=}"[Vault env file path]:path:_files" \
+}
+
 __kube_namespaces=(default kube-system monitoring review)
 
 __kube() {
@@ -56,6 +64,7 @@ __denv_commands () {
         "subcommand" \
         "kube[Set kube environment]" \
         "pass[Set pass environment]" \
+        "vault[Set vault environment]" \
         "tf[Set terraform environment]" \
         "fetch[Fetch templates]" \
         "deactivate[Deactivate environment]"

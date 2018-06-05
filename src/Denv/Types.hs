@@ -22,19 +22,27 @@ instance Show EnvironmentType where
 data DenvVariable = KubeConfig
                   | KubeConfigShort
                   | PasswordStoreDir
+                  | KubectlNamespace
                   | PasswordStoreDirShort
+                  | VaultConfig
+                  | VaultAddr
+                  | VaultToken
+                  | VaultSkipVerify
                   | Prompt
-                  | OldPrompt
-                  | KubectlNamespace deriving (Eq)
+                  | OldPrompt deriving (Eq)
 
 instance Show DenvVariable where
     show KubeConfig            = "KUBECONFIG"
     show KubeConfigShort       = "KUBECONFIG_SHORT"
+    show KubectlNamespace      = "KUBECTL_NAMESPACE"
     show PasswordStoreDir      = "PASSWORD_STORE_DIR"
     show PasswordStoreDirShort = "PASSWORD_STORE_DIR_SHORT"
+    show VaultConfig           = "VAULT_CONFIG"
+    show VaultAddr             = "VAULT_ADDR"
+    show VaultToken            = "VAULT_TOKEN"
+    show VaultSkipVerify       = "VAULT_SKIP_VERIFY"
     show Prompt                = "PS1"
     show OldPrompt             = "_OLD_DENV_PS1"
-    show KubectlNamespace      = "KUBECTL_NAMESPACE"
 
 data EnvVar = EnvVar DenvVariable String | Unset DenvVariable deriving (Eq, Show)
 
@@ -44,6 +52,10 @@ envify (Unset KubeConfig)            = unset $ show KubeConfig
 envify (Unset KubeConfigShort)       = unset $ show KubeConfigShort
 envify (Unset PasswordStoreDir)      = unset $ show PasswordStoreDir
 envify (Unset PasswordStoreDirShort) = unset $ show PasswordStoreDirShort
+envify (Unset VaultConfig)           = unset $ show VaultConfig
+envify (Unset VaultAddr)             = unset $ show VaultAddr
+envify (Unset VaultToken)            = unset $ show VaultToken
+envify (Unset VaultSkipVerify)       = unset $ show VaultSkipVerify
 envify (Unset Prompt)                = unset "_FAKE_DENV_PS1" -- We don't ever wanna unset PS1
 envify (Unset OldPrompt)             = unset $ show OldPrompt
 envify (Unset KubectlNamespace)      = unset $ show KubectlNamespace

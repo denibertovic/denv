@@ -28,6 +28,7 @@ entrypoint :: DenvArgs -> IO ()
 entrypoint (DenvArgs (Kube p n))       = mkKubeEnv p n
 entrypoint (DenvArgs (Pass p))         = mkPassEnv p
 entrypoint (DenvArgs (Fetch makefile)) = fetchTemplate makefile
+entrypoint (DenvArgs (Vault p))        = mkVaultEnv p
 entrypoint (DenvArgs (Terraform e))    = mkTerraformEnv e
 entrypoint (DenvArgs Deactivate)       = deactivateEnv
 entrypoint (DenvArgs (Hook s))         = execHook s
@@ -35,6 +36,21 @@ entrypoint (DenvArgs (Export s))       = execExport s
 
 ps1 :: String
 ps1 = "\"$PS1\""
+
+mkVaultEnv :: FilePath -> IO ()
+mkVaultEnv p = do
+    exists <- doesFileExist p
+    unless exists (die $ "ERROR: VaultConfig file does not exist: " ++ p)
+    let p' = takeFileName p
+    c <- TIO.readFile p
+    h <- getHomeDirectory
+    let rc = h </> ".denv"
+    TIO.writeFile rc c
+    let env = [ EnvVar OldPrompt ps1
+              , EnvVar VaultConfig p'
+              , EnvVar Prompt "\"vault|$VAULT_CONFIG $PS1\""
+              ]
+    TIO.appendFile rc (toEnv env)
 
 mkTerraformEnv :: EnvironmentType -> IO ()
 mkTerraformEnv e = do
@@ -106,6 +122,10 @@ deactivateEnv = do
               , Unset KubectlNamespace
               , Unset PasswordStoreDir
               , Unset PasswordStoreDirShort
+              , Unset VaultConfig
+              , Unset VaultAddr
+              , Unset VaultToken
+              , Unset VaultSkipVerify
               ]
     -- We only restore the prompt if oldPrompt is present otherwise
     -- we would set the prompt to nothing (empty string). This makes

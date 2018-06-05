@@ -74,6 +74,22 @@ Or specify a path to the password store:
 denv pass -p /path/to/password-store
 ```
 
+## Vault env
+
+Example config file in `~/.vault/example`:
+
+```bash
+export VAULT_ADDR=https://vault.example.com
+export VAULT_TOKEN=supersecretotken
+export VAULT_SKIP_VERIFY=true
+```
+
+Activate env with:
+
+```bash
+denv vault -p ~/.vault/example
+```
+
 ## Deactivate env
 
 ```bash

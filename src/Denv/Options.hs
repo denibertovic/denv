@@ -17,6 +17,7 @@ data Command = Kube KubeProjectName (Maybe KubeNamespace)
              | Pass (Maybe PasswordStorePath)
              | Terraform EnvironmentType
              | Fetch (Maybe MakefileTemplateName)
+             | Vault FilePath
              | Deactivate
              | Hook Shell
              | Export Shell
@@ -55,10 +56,21 @@ kubeProjectOpt = strOption (
                    <> metavar "YAMLPATH"
                    <> help "Full path to kube config yaml file.")
 
+vaultProjectOpt = strOption (
+                   long "vault-project"
+                   <> short 'p'
+                   <> metavar "PATH"
+                   <> help "Vault env file path")
+
 cmdFetch = command "fetch" infos
     where infos = info (options <**> helper) desc
           desc = progDesc "Fetches various templates."
           options = Fetch <$> makeOpt
+
+cmdVault = command "vault" infos
+    where infos = info (options <**> helper) desc
+          desc = progDesc "Set vault environment."
+          options = Vault <$> vaultProjectOpt
 
 cmdTerraform = command "tf" infos
     where infos = info (options <**> helper) desc
@@ -91,7 +103,15 @@ cmdExport = command "export" infos
           options = Export <$> argument auto (metavar "SHELL")
 
 
-argCmds = subparser (cmdKube <> cmdPass <> cmdTerraform <> cmdFetch <> cmdDeactivate <> cmdHook <> cmdExport)
+argCmds = subparser (cmdKube
+                     <> cmdPass
+                     <> cmdTerraform
+                     <> cmdFetch
+                     <> cmdVault
+                     <> cmdDeactivate
+                     <> cmdHook
+                     <> cmdExport
+                    )
 
 denvArgs :: Parser DenvArgs
 denvArgs = DenvArgs <$> argCmds
