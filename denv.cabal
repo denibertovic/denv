@@ -1,5 +1,5 @@
 name:                denv
-version:             0.1.2.0
+version:             0.1.3.0
 synopsis:            A tool to help manage environments
 description:         A tool to help manage environments
 homepage:            https://github.com/denibertovic/denv#readme
