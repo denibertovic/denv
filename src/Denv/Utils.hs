@@ -5,6 +5,7 @@
 module Denv.Utils where
 
 import RIO
+import Prelude (getLine, putStr)
 
 import System.Environment (lookupEnv)
 import System.Exit (die)
@@ -21,6 +22,12 @@ import Denv.Types
 
 mkEscapedText :: T.Text -> T.Text
 mkEscapedText x = "\"" <> x <> "\""
+
+ps1 :: T.Text
+ps1 = mkEscapedText "$PS1"
+
+eitherToMaybe :: Either a b -> Maybe b
+eitherToMaybe x = either (const Nothing) (\r -> Just r) x
 
 withVarTracking :: Maybe T.Text -> [DenvVariable] -> [DenvVariable]
 withVarTracking x xs =
@@ -51,7 +58,7 @@ checkEnv = do
   isActiveEnv <- lookupEnv "_DENV_SET_VARS"
   case isActiveEnv of
     Nothing -> return ()
-    Just _ -> die "Env already active. Please run `deactivate` first."
+    Just _ -> die "Env already active. Please run `denv deactivate` first or use the \"exec mode\" for your command."
 
 envify :: DenvVariable -> T.Text
 envify (Set k v) = "export " <> (T.pack $ show k) <> "=" <> v <> ";" <> "\n"
@@ -93,3 +100,9 @@ mkRawEnvShort xs = intercalate "" $ drop (length fragments - 2) fragments
 mkPassDirShort :: FilePath -> String
 mkPassDirShort xs = intercalate "" $ drop (length fragments - 2) fragments
   where fragments = splitPath xs
+
+promptLine :: String -> IO String
+promptLine prompt = do
+    putStr prompt
+    hFlush stdout
+    getLine

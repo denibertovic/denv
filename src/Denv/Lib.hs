@@ -26,19 +26,18 @@ import System.FilePath.Posix (takeFileName)
 import Denv.Options
 import Denv.Types
 import Denv.Utils
+import qualified Denv.Aws as AWS
 
 entrypoint :: DenvArgs -> IO ()
-entrypoint (DenvArgs (Kube p n)) = mkKubeEnv p n
-entrypoint (DenvArgs (Pass p)) = mkPassEnv p
-entrypoint (DenvArgs (Source p)) = mkRawEnv p
-entrypoint (DenvArgs (Vault p)) = mkVaultEnv p
-entrypoint (DenvArgs (Terraform e)) = mkTerraformEnv e
-entrypoint (DenvArgs Deactivate) = deactivateEnv
-entrypoint (DenvArgs (Hook s)) = execHook s
-entrypoint (DenvArgs (Export s)) = execExport s
-
-ps1 :: T.Text
-ps1 = mkEscapedText "$PS1"
+entrypoint (DenvArgs (Kube p n) debug) = mkKubeEnv p n
+entrypoint (DenvArgs (Pass p) debug) = mkPassEnv p
+entrypoint (DenvArgs (Source p) debug) = mkRawEnv p
+entrypoint (DenvArgs (Vault p) debug) = mkVaultEnv p
+entrypoint (DenvArgs (Aws p cmd) debug) = AWS.mkAwsEnv p cmd debug
+entrypoint (DenvArgs (Terraform e) debug) = mkTerraformEnv e
+entrypoint (DenvArgs Deactivate debug) = deactivateEnv
+entrypoint (DenvArgs (Hook s) debug) = execHook s
+entrypoint (DenvArgs (Export s) debug) = execExport s
 
 mkRawEnv :: FilePath -> IO ()
 mkRawEnv p = do

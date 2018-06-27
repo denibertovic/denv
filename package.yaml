@@ -1,5 +1,5 @@
 name:                denv
-version:             0.3.1.0
+version:             0.4.0.0
 github:              "denibertovic/denv"
 license:             LGPL-3
 author:              "Deni Bertovic"
@@ -29,13 +29,27 @@ ghc-options:
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
 - rio
+- free
 - optparse-applicative
+- typed-process
 - text
 - directory
 - filepath
 - parsec
 - load-env
+- ini
+- lens-family-core
+- time
+- iso8601-time
+- resourcet
+- amazonka
+- amazonka-core
+- amazonka-sts
+- mtl
+- transformers
+- unix
 
 library:
   source-dirs: src

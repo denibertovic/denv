@@ -8,12 +8,15 @@ import Data.Semigroup ((<>))
 import Denv.Lib
 import Denv.Options
 import Options.Applicative
+import System.Environment (getEnvironment)
 
 main :: IO ()
-main = execParser opts >>= entrypoint
+main = do
+  env <- getEnvironment
+  execParser (opts env) >>= entrypoint
   where
-    opts =
+    opts env =
       info
-        (helper <*> versionOpt <*> denvArgs)
+        (helper <*> versionOpt <*> denvArgs env)
         (fullDesc <> progDesc "denv - A tool to help manage environments." <>
          header "denv - A tool to help manage environments.")

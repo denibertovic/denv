@@ -30,6 +30,21 @@ instance Show EnvironmentType where
   show Staging = "staging"
   show (Other s) = s
 
+data AwsVariable
+  = AwsAccessKeyId
+  | AwsSecretAccessKey
+  | AwsSessionToken
+  | AwsSecurityToken
+  | AwsDefaultRegion
+  deriving (Eq)
+
+instance Show AwsVariable where
+  show AwsAccessKeyId = "AWS_ACCESS_KEY_ID"
+  show AwsSecretAccessKey = "AWS_SECRET_ACCESS_KEY"
+  show AwsSessionToken = "AWS_SESSION_TOKEN"
+  show AwsSecurityToken = "AWS_SECURITY_TOKEN"
+  show AwsDefaultRegion = "AWS_DEFAULT_REGION"
+
 data KubeVariable
   = KubeConfig
   | KubeConfigShort

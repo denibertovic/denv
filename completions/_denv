@@ -29,6 +29,9 @@ _denv () {
         'source')
             __source
         ;;
+        aws)
+            __aws
+        ;;
         deactivate)
             __deactivate
         ;;
@@ -59,6 +62,11 @@ __vault() {
         "(-p --vault-project)"{-p,--vault-project=}"[Vault env file path]:path:_files" \
 }
 
+__aws() {
+    _arguments \
+        "(-p --profile)"{-p,--profile=}"[AWS profile to use]" \
+}
+
 __kube_namespaces=(default kube-system monitoring review)
 
 __kube() {
@@ -75,7 +83,7 @@ __denv_commands () {
         "source[Source raw env file]" \
         "vault[Set vault environment]" \
         "tf[Set terraform environment]" \
-        "fetch[Fetch templates]" \
+        "aws[Set AWS profile to use]" \
         "deactivate[Deactivate environment]"
 }
 

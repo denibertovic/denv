@@ -90,6 +90,103 @@ Activate env with:
 denv vault -p ~/.vault/example
 ```
 
+## AWS env (Beta)
+
+This feature is still in beta. Please report bugs if you find them.
+
+### Requirements
+
+You need to configure your `~/.aws/config` and `~/.aws/credentials` before we proceed. Here's an
+example:
+
+```
+#### ~/.aws/config ####
+
+[profile project1]
+region=us-east-1
+
+[profile project2]
+region=us-west-2
+
+[profile project3]
+region=us-west-2
+
+[profile project1-prod-admin]
+role_arn=arn:aws:iam::....:role/admin
+mfa_serial=arn:aws:iam::....:mfa/deni
+source_profile=project2
+
+[profile project2-prod-admin]
+role_arn=arn:aws:iam::....:role/admin
+source_profile=project2
+
+[profile project3-test]
+source_profile=project3
+
+
+##### ~/.aws/credentials #####
+
+[project1]
+aws_access_key_id=.....
+aws_secret_access_key=.....
+
+[project2]
+aws_access_key_id=.....
+aws_secret_access_key=.....
+
+[project3]
+aws_access_key_id=.....
+aws_secret_access_key=.....
+
+```
+
+Make sure to set the correct permissions: `chmod 600 ~/.aws/config && chmod 600 ~/.aws/credentials`
+`NOTE`: I consider it best practice to delete the `default` profile if you have one.
+
+In the example above we have have configured AWS access for 3 projects.
+For `project1` we are accessing the prod environment and are required to enter a MFA token
+and assume a role to be able to do anything. Denv will take care of this for us.
+In this example denv will first request STS (temporary) credentials, called session credentials,
+which we will then use to assume the `admin` role. All further requests are done using the key
+and secret from the admin role.
+
+The session credentials and role credentials are both cached in `~/.aws-env/`. Once the role
+credentials expire (default is 1 hour but this will be configurable in a future release) we will
+use the temporary session credentials to request new ones. The session credentials will expire
+in 36 hours (this will be configurable in a future release).
+It's worth noting that during these 36 hours you will not be prompted for your MFA token code.
+
+In the second example for `project2`, since we are not using a MFA token, we will not be able to use
+temporary session credentials and will use your raw credentials to assume the role.
+Conversely, if there is no role to assume, like with project 3, denv will just export your aws_access_key_id and aws_secret_access_key that you specified in the credentials file.
+
+### How to use
+
+Aws environments can be activated in 2 ways:
+
+* Eval form
+* Exec form
+
+To activate the eval form run the following command:
+
+`denv aws -p project1-prod-admin`
+
+So now you have the required environment variables injected in your shell.
+Try running `export | grep AWS*` to see what they are.
+
+And try running a command like `aws ec2 describe-instances` to verify it works.
+
+To use the exec form run the following command:
+
+`denv aws -p project1-prod-admin -- aws ec2 describe-instances`
+
+The benefit of this is that the variables are only visible to the process you are
+calling (in this case the aws cli tool), and are never exported into your current shell.
+I prefer using the tool this way.
+
+`NOTE`: As with all the other commands denv tracks the injected variables so that
+`denv deactivate` can unset them from your shell.
+
 ## Deactivate env
 
 ```bash
@@ -103,4 +200,3 @@ denv deactivate
 ## ZSH completions
 
 Copy `completions/_denv` to `~/.oh-my-zsh/custom/plugins/denv/_denv`
-

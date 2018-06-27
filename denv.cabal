@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.0.
+-- This file has been generated from package.yaml by hpack version 0.31.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7ff3b63e10ce7819889a620b9bc6118eca4abdfa9b8b698a1f772bb8bc9cea57
+-- hash: 2e243478e10efbb5b26708af03241ab0a15f2f1bd8bd8c2961d2ff3057bea959
 
 name:           denv
-version:        0.3.1.0
+version:        0.4.0.0
 description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
 homepage:       https://github.com/denibertovic/denv#readme
 bug-reports:    https://github.com/denibertovic/denv/issues
@@ -25,67 +25,113 @@ source-repository head
   location: https://github.com/denibertovic/denv
 
 library
-  hs-source-dirs:
-      src
-  default-extensions: NoImplicitPrelude
-  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
-  build-depends:
-      base >=4.7 && <5
-    , directory
-    , filepath
-    , load-env
-    , optparse-applicative
-    , parsec
-    , rio
-    , text
   exposed-modules:
+      Denv.Aws
+      Denv.Aws.Lib
+      Denv.Aws.Types
+      Denv.Aws.Utils
       Denv.Lib
       Denv.Options
       Denv.Types
       Denv.Utils
   other-modules:
       Paths_denv
+  hs-source-dirs:
+      src
+  default-extensions: NoImplicitPrelude
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      aeson
+    , amazonka
+    , amazonka-core
+    , amazonka-sts
+    , base >=4.7 && <5
+    , directory
+    , filepath
+    , free
+    , ini
+    , iso8601-time
+    , lens-family-core
+    , load-env
+    , mtl
+    , optparse-applicative
+    , parsec
+    , resourcet
+    , rio
+    , text
+    , time
+    , transformers
+    , typed-process
+    , unix
   default-language: Haskell2010
 
 executable denv
   main-is: Main.hs
+  other-modules:
+      Paths_denv
   hs-source-dirs:
       app
   default-extensions: NoImplicitPrelude
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , amazonka
+    , amazonka-core
+    , amazonka-sts
+    , base >=4.7 && <5
     , denv
     , directory
     , filepath
+    , free
+    , ini
+    , iso8601-time
+    , lens-family-core
     , load-env
+    , mtl
     , optparse-applicative
     , parsec
+    , resourcet
     , rio
     , text
-  other-modules:
-      Paths_denv
+    , time
+    , transformers
+    , typed-process
+    , unix
   default-language: Haskell2010
 
 test-suite hspec
   type: exitcode-stdio-1.0
   main-is: Main.hs
+  other-modules:
+      Test.Lib.LibSpec
+      Paths_denv
   hs-source-dirs:
       test
   default-extensions: NoImplicitPrelude
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , amazonka
+    , amazonka-core
+    , amazonka-sts
+    , base >=4.7 && <5
     , denv
     , directory
     , filepath
+    , free
     , hspec
+    , ini
+    , iso8601-time
+    , lens-family-core
     , load-env
+    , mtl
     , optparse-applicative
     , parsec
+    , resourcet
     , rio
     , text
-  other-modules:
-      Test.Lib.LibSpec
-      Paths_denv
+    , time
+    , transformers
+    , typed-process
+    , unix
   default-language: Haskell2010
