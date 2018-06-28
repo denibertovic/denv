@@ -2,6 +2,8 @@
 
 module Main where
 
+import RIO
+
 import Data.Semigroup ((<>))
 import Denv.Lib
 import Denv.Options

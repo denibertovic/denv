@@ -2,6 +2,8 @@
 
 module Denv.Types where
 
+import RIO hiding (set)
+
 import qualified Data.Text as T
 
 type MakefileTemplateName = String

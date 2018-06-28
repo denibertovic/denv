@@ -2,23 +2,23 @@
 
 module Denv.Lib where
 
-import Control.Monad (mapM_, unless, when)
+import RIO
+
+import Prelude (putStrLn)
+import Control.Monad (unless, when)
 import Data.List (intercalate)
-import Data.Maybe (fromMaybe, maybe)
-import Data.Monoid ((<>))
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Network.HTTP.Client.Conduit.Download (download)
 import System.Directory
        (doesDirectoryExist, doesFileExist, getHomeDirectory, removeFile,
-        renameFile)
-import System.Directory (getCurrentDirectory)
-import System.Directory (getCurrentDirectory)
-import System.Environment (getEnv, lookupEnv, unsetEnv)
+        renameFile, getCurrentDirectory)
+import System.Environment (lookupEnv)
 import System.Exit (die, exitSuccess)
 import System.FilePath ((</>))
 import System.FilePath.Posix
-       (splitPath, takeBaseName, takeFileName)
+       (splitPath, takeFileName)
 
 import Denv.Options
 import Denv.Types

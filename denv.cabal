@@ -1,49 +1,85 @@
-name:                denv
-version:             0.1.3.0
-synopsis:            A tool to help manage environments
-description:         A tool to help manage environments
-homepage:            https://github.com/denibertovic/denv#readme
-license:             BSD3
-license-file:        LICENSE
-author:              Deni Bertovic
-maintainer:          deni@denibertovic.com
-copyright:           2017 Deni Bertovic
-category:            Command Line Tool
-build-type:          Simple
-extra-source-files:  README.md
-cabal-version:       >=1.10
+-- This file has been generated from package.yaml by hpack version 0.20.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: ea1ed65caddc5ef12265eb95cce3df9b7b2a633b786d4c93f23764348308217c
 
-library
-  hs-source-dirs:      src
-  exposed-modules:     Denv.Lib, Denv.Types, Denv.Options
-  other-modules:       Paths_denv
-  build-depends:       base >= 4.7 && < 5
-                     , optparse-applicative
-                     , text
-                     , directory
-                     , filepath
-                     , simple-download
-  default-language:    Haskell2010
+name:           denv
+version:        0.1.3.0
+description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
+homepage:       https://github.com/denibertovic/denv#readme
+bug-reports:    https://github.com/denibertovic/denv/issues
+author:         Deni Bertovic
+maintainer:     deni@denibertovic.com
+copyright:      2018 Deni Bertovic
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
 
-executable denv
-  hs-source-dirs:      app
-  main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , denv
-                     , optparse-applicative
-  default-language:    Haskell2010
-
-test-suite denv-test
-  type:                exitcode-stdio-1.0
-  hs-source-dirs:      test
-  main-is:             Spec.hs
-  build-depends:       base
-                     , denv
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  default-language:    Haskell2010
+extra-source-files:
+    README.md
 
 source-repository head
-  type:     git
+  type: git
   location: https://github.com/denibertovic/denv
 
+library
+  hs-source-dirs:
+      src
+  default-extensions: NoImplicitPrelude
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , directory
+    , filepath
+    , optparse-applicative
+    , rio
+    , simple-download
+    , text
+  exposed-modules:
+      Denv.Lib
+      Denv.Options
+      Denv.Types
+  other-modules:
+      Paths_denv
+  default-language: Haskell2010
+
+executable denv
+  main-is: Main.hs
+  hs-source-dirs:
+      app
+  default-extensions: NoImplicitPrelude
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , denv
+    , directory
+    , filepath
+    , optparse-applicative
+    , rio
+    , simple-download
+    , text
+  other-modules:
+      Paths_denv
+  default-language: Haskell2010
+
+test-suite denv-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  hs-source-dirs:
+      test
+  default-extensions: NoImplicitPrelude
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , denv
+    , directory
+    , filepath
+    , optparse-applicative
+    , rio
+    , simple-download
+    , text
+  other-modules:
+      Paths_denv
+  default-language: Haskell2010
