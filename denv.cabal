@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ea1ed65caddc5ef12265eb95cce3df9b7b2a633b786d4c93f23764348308217c
+-- hash: a5e00a09ff01b5dd9bb4671768f26487bb9de34843df002df653b438ae326887
 
 name:           denv
 version:        0.1.3.0
@@ -33,7 +33,9 @@ library
       base >=4.7 && <5
     , directory
     , filepath
+    , load-env
     , optparse-applicative
+    , parsec
     , rio
     , simple-download
     , text
@@ -41,6 +43,7 @@ library
       Denv.Lib
       Denv.Options
       Denv.Types
+      Denv.Utils
   other-modules:
       Paths_denv
   default-language: Haskell2010
@@ -56,7 +59,9 @@ executable denv
     , denv
     , directory
     , filepath
+    , load-env
     , optparse-applicative
+    , parsec
     , rio
     , simple-download
     , text
@@ -64,9 +69,9 @@ executable denv
       Paths_denv
   default-language: Haskell2010
 
-test-suite denv-test
+test-suite hspec
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: Main.hs
   hs-source-dirs:
       test
   default-extensions: NoImplicitPrelude
@@ -76,10 +81,14 @@ test-suite denv-test
     , denv
     , directory
     , filepath
+    , hspec
+    , load-env
     , optparse-applicative
+    , parsec
     , rio
     , simple-download
     , text
   other-modules:
+      Test.Lib.LibSpec
       Paths_denv
   default-language: Haskell2010

@@ -20,6 +20,17 @@ test:
 release:
 	@git tag ${VERSION} && git push --tags
 
+## Run ghcid
+ghcid:
+	@ghcid \
+		--command "stack ghci denv --ghci-options=-fno-code"
+
+## Have ghcid run the test suite on successful recompile
+ghcid-test:
+	@ghcid \
+		--command "stack ghci denv:lib denv:test:hspec --ghci-options=-fobject-code" \
+		--test "main"
+
 ## Show help screen.
 help:
 	@echo "Please use \`make <target>' where <target> is one of\n\n"

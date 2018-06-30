@@ -35,6 +35,8 @@ dependencies:
 - directory
 - filepath
 - simple-download
+- load-env
+- parsec
 
 library:
   source-dirs: src
@@ -54,8 +56,8 @@ executables:
     - denv
 
 tests:
-  denv-test:
-    main:                Spec.hs
+  hspec:
+    main:                Main.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -63,3 +65,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - denv
+    - hspec

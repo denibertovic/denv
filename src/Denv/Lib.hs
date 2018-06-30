@@ -1,27 +1,34 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE GADTs #-}
 
 module Denv.Lib where
 
 import RIO
 
-import Prelude (putStrLn)
 import Control.Monad (unless, when)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Network.HTTP.Client.Conduit.Download (download)
+import Prelude (putStrLn)
 import System.Directory
-       (doesDirectoryExist, doesFileExist, getHomeDirectory, removeFile,
-        renameFile, getCurrentDirectory)
+  ( doesDirectoryExist
+  , doesFileExist
+  , getCurrentDirectory
+  , getHomeDirectory
+  , removeFile
+  , renameFile
+  )
 import System.Environment (lookupEnv)
 import System.Exit (die, exitSuccess)
 import System.FilePath ((</>))
-import System.FilePath.Posix
-       (splitPath, takeFileName)
+import System.FilePath.Posix (splitPath, takeFileName)
 
 import Denv.Options
 import Denv.Types
+import Denv.Utils
 
 entrypoint :: DenvArgs -> IO ()
 entrypoint (DenvArgs (Kube p n)) = mkKubeEnv p n
@@ -33,73 +40,80 @@ entrypoint (DenvArgs Deactivate) = deactivateEnv
 entrypoint (DenvArgs (Hook s)) = execHook s
 entrypoint (DenvArgs (Export s)) = execExport s
 
-ps1 :: String
-ps1 = "\"$PS1\""
+ps1 :: T.Text
+ps1 = mkEscapedText "$PS1"
 
 mkVaultEnv :: FilePath -> IO ()
 mkVaultEnv p = do
+  checkEnv
   exists <- doesFileExist p
   unless exists (die $ "ERROR: VaultConfig file does not exist: " ++ p)
   let p' = takeFileName p
   c <- TIO.readFile p
-  h <- getHomeDirectory
-  let rc = h </> ".denv"
-  TIO.writeFile rc c
+  deac <- parseEnvFileOrDie p' c
   let env =
-        [ EnvVar OldPrompt ps1
-        , EnvVar VaultConfig p'
-        , EnvVar Prompt "\"vault|$VAULT_CONFIG $PS1\""
-        ]
-  TIO.appendFile rc (toEnv env)
+        withVarTracking
+          (Just deac)
+          [ Set OldPrompt ps1
+          , Set VaultConfig $ T.pack p'
+          , Set Prompt $ mkEscapedText "vault|$VAULT_CONFIG $PS1"
+          ]
+  writeRcWithPredefined c env
 
 mkTerraformEnv :: EnvironmentType -> IO ()
 mkTerraformEnv e = do
+  checkEnv
   curDirPath <- getCurrentDirectory
   let path = curDirPath </> show e
   exists <- doesDirectoryExist path
   unless exists (die $ "ERROR: Directory does not exist " ++ path)
   c <- TIO.readFile (path </> "env")
-  h <- getHomeDirectory
-  let rc = h </> ".denv"
-  TIO.writeFile rc c
+  deac <- parseEnvFileOrDie path c
   let env =
-        [EnvVar OldPrompt ps1, EnvVar Prompt "\"terraform|$ENVIRONMENT $PS1\""]
-  TIO.appendFile rc (toEnv env)
+        withVarTracking
+          (Just deac)
+          [ Set OldPrompt ps1
+          , Set Prompt $ mkEscapedText "terraform|$ENVIRONMENT $PS1"
+          ]
+  writeRcWithPredefined c env
 
 mkPassEnv :: Maybe PasswordStorePath -> IO ()
 mkPassEnv p = do
+  checkEnv
   curDirPath <- getCurrentDirectory
   let p' = fromMaybe curDirPath p
-  h <- getHomeDirectory
-  let rc = h </> ".denv"
   exists <- doesDirectoryExist p'
   unless exists (die $ "ERROR: Password store does not exist: " ++ p')
   let xs = splitPath p'
   let p'' = intercalate "" $ drop (length xs - 2) xs
   let env =
-        [ EnvVar PasswordStoreDir p'
-        , EnvVar PasswordStoreDirShort p''
-        , EnvVar OldPrompt ps1
-        , EnvVar Prompt "\"pass|$PASSWORD_STORE_DIR_SHORT $PS1\""
-        ]
-  TIO.writeFile rc (toEnv env)
+        withVarTracking
+          Nothing
+          [ Set PasswordStoreDir $ T.pack p'
+          , Set PasswordStoreDirShort $ T.pack p''
+          , Set OldPrompt ps1
+          , Set Prompt $ mkEscapedText "pass|$PASSWORD_STORE_DIR_SHORT $PS1"
+          ]
+  writeRc env
 
 mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
 mkKubeEnv p n = do
+  checkEnv
   exists <- doesFileExist p
   unless exists (die $ "ERROR: Kubeconfig does not exist: " ++ p)
-  h <- getHomeDirectory
-  let rc = h </> ".denv"
   let p' = takeFileName p
   let n' = fromMaybe "default" n
   let env =
-        [ EnvVar KubeConfig p
-        , EnvVar KubeConfigShort p'
-        , EnvVar KubectlNamespace n'
-        , EnvVar OldPrompt ps1
-        , EnvVar Prompt "\"k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1\""
-        ]
-  TIO.writeFile rc (toEnv env)
+        withVarTracking
+          Nothing
+          [ Set KubeConfig $ T.pack p
+          , Set KubeConfigShort $ T.pack p'
+          , Set KubectlNamespace $ T.pack n'
+          , Set OldPrompt ps1
+          , Set Prompt $
+            mkEscapedText "k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1"
+          ]
+  writeRc env
 
 fetchTemplate :: Maybe MakefileTemplateName -> IO ()
 fetchTemplate m = do
@@ -116,32 +130,19 @@ fetchTemplate m = do
 
 deactivateEnv :: IO ()
 deactivateEnv = do
-  h <- getHomeDirectory
-  let rc = h </> ".denv"
-  oldPrompt <- lookupEnv "_OLD_DENV_PS1"
-  let restorePrompt = [EnvVar Prompt "\"$_OLD_DENV_PS1\""]
-  let env =
-        [ Unset OldPrompt
-        , Unset KubeConfig
-        , Unset KubeConfigShort
-        , Unset KubectlNamespace
-        , Unset PasswordStoreDir
-        , Unset PasswordStoreDirShort
-        , Unset VaultConfig
-        , Unset VaultAddr
-        , Unset VaultToken
-        , Unset VaultSkipVerify
-        ]
-    -- We only restore the prompt if oldPrompt is present otherwise
-    -- we would set the prompt to nothing (empty string). This makes
-    -- the deactivate command idempotent.
-  case oldPrompt of
-    Nothing -> do
-      TIO.writeFile rc (toEnv env)
-      TIO.appendFile rc (unset "ENVIRONMENT")
-    Just _ -> do
-      TIO.writeFile rc (toEnv $ restorePrompt ++ env)
-      TIO.appendFile rc (unset "ENVIRONMENT")
+  toDeactivate <- lookupEnv "_DENV_SET_VARS"
+  let restorePrompt = [Set Prompt "\"$_OLD_DENV_PS1\""]
+  -- We only restore the prompt if oldPrompt is present otherwise
+  -- we would set the prompt to nothing (empty string). This makes
+  -- the deactivate command idempotent.
+  case toDeactivate of
+    Nothing -> return ()
+    Just t -> do
+      putStrLn $
+        T.unpack $ "denv unsetting: " <> (T.replace "," " / " (T.pack t))
+      let env :: [DenvVariable]
+          env = map Unset $ T.splitOn "," (T.pack t)
+      writeRc (restorePrompt <> env)
 
 execHook :: Shell -> IO ()
 execHook BASH = putStrLn bashHook
