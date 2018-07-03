@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a5e00a09ff01b5dd9bb4671768f26487bb9de34843df002df653b438ae326887
+-- hash: 597d8533598e38efefe4a451696a85b38ebb405202d038511e27de4680238fd2
 
 name:           denv
-version:        0.1.3.0
+version:        0.2.0.0
 description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
 homepage:       https://github.com/denibertovic/denv#readme
 bug-reports:    https://github.com/denibertovic/denv/issues

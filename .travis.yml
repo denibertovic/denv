@@ -44,14 +44,8 @@ install:
 script:
 - |
   set -ex
-  if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-    # TODO: This build doesn't take that long so we likely don't need this
-    # Plus it won't actually work since we don't save the cache on timeout
-    (timeout 1800 stack --no-terminal install) || ([ $? = 124 ] && echo "Timed out after 30min so the build will have to be picked up next time")
-  else
-    (gtimeout 1800 stack --no-terminal install) || ([ $? = 124 ] && echo "Timed out after 30min so the build will have to be picked up next time")
-  fi
-  #stack --no-terminal install
+  stack --no-terminal test
+  stack --no-terminal install
   set +ex
 
 after_success:
