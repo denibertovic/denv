@@ -57,7 +57,7 @@ spec =
         cont <- TIO.readFile (d </> ".denv")
         let ret =
               [ "export PASSWORD_STORE_DIR=" <> T.pack d <> ";"
-              , "export PASSWORD_STORE_DIR_SHORT=" <> (T.drop 1 $ T.pack d) <> ";"
+              , "export PASSWORD_STORE_DIR_SHORT=" <> (T.pack $ mkPassDirShort d) <> ";"
               ]
         (ret `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests tf env" $ do

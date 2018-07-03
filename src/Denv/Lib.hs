@@ -7,7 +7,6 @@ module Denv.Lib where
 import RIO
 
 import Control.Monad (unless, when)
-import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -24,7 +23,7 @@ import System.Directory
 import System.Environment (lookupEnv)
 import System.Exit (die, exitSuccess)
 import System.FilePath ((</>))
-import System.FilePath.Posix (splitPath, takeFileName)
+import System.FilePath.Posix (takeFileName)
 
 import Denv.Options
 import Denv.Types
@@ -84,8 +83,7 @@ mkPassEnv p = do
   let p' = fromMaybe curDirPath p
   exists <- doesDirectoryExist p'
   unless exists (die $ "ERROR: Password store does not exist: " ++ p')
-  let xs = splitPath p'
-  let p'' = intercalate "" $ drop (length xs - 2) xs
+  let p'' = mkPassDirShort p'
   let env =
         withVarTracking
           Nothing

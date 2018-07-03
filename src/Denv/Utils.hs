@@ -8,12 +8,13 @@ import RIO
 
 import System.Environment (lookupEnv)
 import System.Exit (die)
-import Data.List (foldl)
+import Data.List (foldl, intercalate)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import qualified LoadEnv.Parse as LE
 import System.FilePath ((</>))
 import Text.Parsec (parse)
+import System.FilePath.Posix (splitPath)
 import System.Directory ( getHomeDirectory )
 
 import Denv.Types
@@ -84,3 +85,6 @@ parseEnvFileOrDie p c = do
               ""
               deac'
       return deac''
+
+mkPassDirShort :: FilePath -> String
+mkPassDirShort xs = intercalate "" $ drop (length xs - 2) $ splitPath xs
