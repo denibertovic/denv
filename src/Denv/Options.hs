@@ -19,7 +19,6 @@ data Command
          (Maybe KubeNamespace)
   | Pass (Maybe PasswordStorePath)
   | Terraform EnvironmentType
-  | Fetch (Maybe MakefileTemplateName)
   | Vault FilePath
   | Deactivate
   | Hook Shell
@@ -43,13 +42,6 @@ passPathOpt =
     (long "password-store-path" <> short 'p' <> metavar "PATH" <>
      help "Full path to password store directory.")
 
-makeOpt :: Parser (Maybe String)
-makeOpt =
-  optional $
-  strOption
-    (long "makefile" <> short 'm' <> metavar "NAME" <>
-     help "Makefile template to fetch from github repo.")
-
 kubeNamespaceOpt :: Parser (Maybe String)
 kubeNamespaceOpt =
   optional $
@@ -68,13 +60,6 @@ vaultProjectOpt =
   strOption
     (long "vault-project" <> short 'p' <> metavar "PATH" <>
      help "Vault env file path")
-
-cmdFetch :: Mod CommandFields Command
-cmdFetch = command "fetch" infos
-  where
-    infos = info (options <**> helper) desc
-    desc = progDesc "Fetches various templates."
-    options = Fetch <$> makeOpt
 
 cmdVault :: Mod CommandFields Command
 cmdVault = command "vault" infos
@@ -129,7 +114,7 @@ cmdExport = command "export" infos
 argCmds :: Parser Command
 argCmds =
   subparser
-    (cmdKube <> cmdPass <> cmdTerraform <> cmdFetch <> cmdVault <> cmdDeactivate <>
+    (cmdKube <> cmdPass <> cmdTerraform <> cmdVault <> cmdDeactivate <>
      cmdHook <>
      cmdExport)
 

@@ -10,7 +10,6 @@ import Control.Monad (unless, when)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import Network.HTTP.Client.Conduit.Download (download)
 import Prelude (putStrLn)
 import System.Directory
   ( doesDirectoryExist
@@ -32,7 +31,6 @@ import Denv.Utils
 entrypoint :: DenvArgs -> IO ()
 entrypoint (DenvArgs (Kube p n)) = mkKubeEnv p n
 entrypoint (DenvArgs (Pass p)) = mkPassEnv p
-entrypoint (DenvArgs (Fetch makefile)) = fetchTemplate makefile
 entrypoint (DenvArgs (Vault p)) = mkVaultEnv p
 entrypoint (DenvArgs (Terraform e)) = mkTerraformEnv e
 entrypoint (DenvArgs Deactivate) = deactivateEnv
@@ -112,19 +110,6 @@ mkKubeEnv p n = do
             mkEscapedText "k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1"
           ]
   writeRc env
-
-fetchTemplate :: Maybe MakefileTemplateName -> IO ()
-fetchTemplate m = do
-  let baseUrl =
-        "https://raw.githubusercontent.com/denibertovic/makefiles/master/"
-  case m of
-    Nothing ->
-      die
-        "Please specify a template name. See here for a list of templates: https://github.com/denibertovic/makefiles"
-    Just name -> do
-      exists <- doesFileExist "Makefile"
-      when exists (renameFile "Makefile" "Makefile.old")
-      download (baseUrl <> name <> ".makefile") "Makefile"
 
 deactivateEnv :: IO ()
 deactivateEnv = do

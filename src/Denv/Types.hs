@@ -8,8 +8,6 @@ import RIO hiding (set)
 import qualified Data.Text as T
 import Data.Typeable
 
-type MakefileTemplateName = String
-
 type KubeProjectName = String
 
 type KubeNamespace = String

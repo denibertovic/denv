@@ -1,11 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 597d8533598e38efefe4a451696a85b38ebb405202d038511e27de4680238fd2
+-- hash: 585a84a7a5d6e04756172dcea939c96e96426fe9e9845d405346637f4bbcf805
 
 name:           denv
-version:        0.2.0.0
+version:        0.3.0.0
 description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
 homepage:       https://github.com/denibertovic/denv#readme
 bug-reports:    https://github.com/denibertovic/denv/issues
@@ -16,7 +16,6 @@ license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     README.md
 
@@ -37,7 +36,6 @@ library
     , optparse-applicative
     , parsec
     , rio
-    , simple-download
     , text
   exposed-modules:
       Denv.Lib
@@ -63,7 +61,6 @@ executable denv
     , optparse-applicative
     , parsec
     , rio
-    , simple-download
     , text
   other-modules:
       Paths_denv
@@ -86,7 +83,6 @@ test-suite hspec
     , optparse-applicative
     , parsec
     , rio
-    , simple-download
     , text
   other-modules:
       Test.Lib.LibSpec
