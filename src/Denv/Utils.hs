@@ -87,4 +87,5 @@ parseEnvFileOrDie p c = do
       return deac''
 
 mkPassDirShort :: FilePath -> String
-mkPassDirShort xs = intercalate "" $ drop (length xs - 2) $ splitPath xs
+mkPassDirShort xs = intercalate "" $ drop (length fragments - 2) fragments
+  where fragments = splitPath xs
