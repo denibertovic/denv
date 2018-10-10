@@ -37,6 +37,10 @@ resolver: lts-9.14
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
+- location:
+    git: git@github.com:denibertovic/load-env.git
+    commit: 5591e6cbc6a970cac55743799a4f56c7214cd7d3
+
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:

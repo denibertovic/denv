@@ -1,5 +1,5 @@
 name:                denv
-version:             0.3.0.1
+version:             0.3.0.2
 github:              "denibertovic/denv"
 license:             BSD3
 author:              "Deni Bertovic"
@@ -34,8 +34,8 @@ dependencies:
 - text
 - directory
 - filepath
-- load-env
 - parsec
+- load-env
 
 library:
   source-dirs: src

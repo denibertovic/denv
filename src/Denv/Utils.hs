@@ -11,11 +11,11 @@ import System.Exit (die)
 import Data.List (foldl, intercalate)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
-import qualified LoadEnv.Parse as LE
 import System.FilePath ((</>))
 import Text.Parsec (parse)
 import System.FilePath.Posix (splitPath)
 import System.Directory ( getHomeDirectory )
+import qualified LoadEnv.Parse as LE
 
 import Denv.Types
 
