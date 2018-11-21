@@ -67,12 +67,14 @@ data SpecialVariable
   = Prompt
   | OldPrompt
   | DenvSetVars
+  | RawEnvFile
   deriving (Eq)
 
 instance Show SpecialVariable where
   show Prompt = "PS1"
   show OldPrompt = "_OLD_DENV_PS1"
   show DenvSetVars = "_DENV_SET_VARS"
+  show RawEnvFile = "RAW_ENV_FILE"
 
 data DenvVariable where
   Set :: (Eq a, Show a, Typeable a) => a -> T.Text -> DenvVariable

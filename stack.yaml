@@ -37,9 +37,6 @@ resolver: lts-9.14
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
-- location:
-    git: git@github.com:denibertovic/load-env.git
-    commit: 5591e6cbc6a970cac55743799a4f56c7214cd7d3
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
@@ -48,7 +45,7 @@ extra-deps:
 - typed-process-0.2.2.0
 - unliftio-0.2.7.0
 - unliftio-core-0.1.1.0
-- load-env-0.2.0.1
+- load-env-0.2.0.2
 
 # Override default flag values for local packages and extra-deps
 flags: {}

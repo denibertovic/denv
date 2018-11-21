@@ -1,21 +1,22 @@
--- This file has been generated from package.yaml by hpack version 0.28.2.
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9d38e7104e7db43ec0f167de1540307ba09fe7862f06170c4a3096fb0f716200
+-- hash: 7ff3b63e10ce7819889a620b9bc6118eca4abdfa9b8b698a1f772bb8bc9cea57
 
 name:           denv
-version:        0.3.0.2
+version:        0.3.1.0
 description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
 homepage:       https://github.com/denibertovic/denv#readme
 bug-reports:    https://github.com/denibertovic/denv/issues
 author:         Deni Bertovic
 maintainer:     deni@denibertovic.com
 copyright:      2018 Deni Bertovic
-license:        BSD3
+license:        LGPL-3
 license-file:   LICENSE
 build-type:     Simple
-cabal-version:  >= 1.10
 extra-source-files:
     README.md
 

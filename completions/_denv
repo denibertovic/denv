@@ -26,6 +26,9 @@ _denv () {
         fetch)
             __fetch
         ;;
+        'source')
+            __source
+        ;;
         deactivate)
             __deactivate
         ;;
@@ -34,7 +37,12 @@ _denv () {
 
 __fetch () {
     _arguments \
-        "(-m --makefile)"{-m,--makefile=}"[Makefile template]" \
+        "(-m --makefile)"{-m,--makefile=}"[makefile template]" \
+}
+
+__source () {
+    _alternative \
+        "files:filename:_files" \
 }
 
 __tf () {}
@@ -64,6 +72,7 @@ __denv_commands () {
         "subcommand" \
         "kube[Set kube environment]" \
         "pass[Set pass environment]" \
+        "source[Source raw env file]" \
         "vault[Set vault environment]" \
         "tf[Set terraform environment]" \
         "fetch[Fetch templates]" \

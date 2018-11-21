@@ -6,7 +6,7 @@ module Denv.Lib where
 
 import RIO
 
-import Control.Monad (unless, when)
+import Control.Monad (unless)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
@@ -17,7 +17,6 @@ import System.Directory
   , getCurrentDirectory
   , getHomeDirectory
   , removeFile
-  , renameFile
   )
 import System.Environment (lookupEnv)
 import System.Exit (die, exitSuccess)
@@ -31,6 +30,7 @@ import Denv.Utils
 entrypoint :: DenvArgs -> IO ()
 entrypoint (DenvArgs (Kube p n)) = mkKubeEnv p n
 entrypoint (DenvArgs (Pass p)) = mkPassEnv p
+entrypoint (DenvArgs (Source p)) = mkRawEnv p
 entrypoint (DenvArgs (Vault p)) = mkVaultEnv p
 entrypoint (DenvArgs (Terraform e)) = mkTerraformEnv e
 entrypoint (DenvArgs Deactivate) = deactivateEnv
@@ -39,6 +39,24 @@ entrypoint (DenvArgs (Export s)) = execExport s
 
 ps1 :: T.Text
 ps1 = mkEscapedText "$PS1"
+
+mkRawEnv :: FilePath -> IO ()
+mkRawEnv p = do
+  checkEnv
+  exists <- doesFileExist p
+  unless exists (die $ "ERROR: File does not exist: " ++ p)
+  let p' = mkRawEnvShort p
+  c <- TIO.readFile p
+  deac <- parseEnvFileOrDie p' c
+  let env =
+        withVarTracking
+          (Just deac)
+          [ Set OldPrompt ps1
+          , Set RawEnvFile $ T.pack p'
+          , Set Prompt $ mkEscapedText "raw|$RAW_ENV_FILE $PS1"
+          ]
+  writeRcWithPredefined c env
+
 
 mkVaultEnv :: FilePath -> IO ()
 mkVaultEnv p = do

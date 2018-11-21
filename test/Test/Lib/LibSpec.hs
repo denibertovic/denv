@@ -50,6 +50,12 @@ spec =
         _ <- mkVaultEnv f
         cont <- TIO.readFile (d </> ".denv")
         (testVaultConfig `isPrefixOf` T.lines cont) `shouldBe` True
+    it "Tests sourcing env file" $ do
+      withTempVaultConfig $ \d f -> do
+        setEnv "HOME" d
+        _ <- mkRawEnv f
+        cont <- TIO.readFile (d </> ".denv")
+        (testVaultConfig `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests pass env" $ do
       withRandomTempFile $ \d _ -> do
         setEnv "HOME" d

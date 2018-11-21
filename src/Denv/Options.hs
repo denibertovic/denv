@@ -19,6 +19,7 @@ data Command
          (Maybe KubeNamespace)
   | Pass (Maybe PasswordStorePath)
   | Terraform EnvironmentType
+  | Source FilePath
   | Vault FilePath
   | Deactivate
   | Hook Shell
@@ -55,11 +56,24 @@ kubeProjectOpt =
     (long "kube-project" <> short 'p' <> metavar "YAMLPATH" <>
      help "Full path to kube config yaml file.")
 
+envFilePathOpt :: Parser String
+envFilePathOpt =
+  argument str
+    (metavar "PATH" <>
+     help "Raw env file path")
+
 vaultProjectOpt :: Parser String
 vaultProjectOpt =
   strOption
     (long "vault-project" <> short 'p' <> metavar "PATH" <>
      help "Vault env file path")
+
+cmdSource :: Mod CommandFields Command
+cmdSource = command "source" infos
+  where
+    infos = info (options <**> helper) desc
+    desc = progDesc "Source env file."
+    options = Source <$> envFilePathOpt
 
 cmdVault :: Mod CommandFields Command
 cmdVault = command "vault" infos
@@ -115,6 +129,7 @@ argCmds :: Parser Command
 argCmds =
   subparser
     (cmdKube <> cmdPass <> cmdTerraform <> cmdVault <> cmdDeactivate <>
+     cmdSource <>
      cmdHook <>
      cmdExport)
 
