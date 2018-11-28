@@ -31,6 +31,10 @@ ghcid-test:
 		--command "stack ghci denv:lib denv:test:hspec --ghci-options=-fobject-code" \
 		--test "main"
 
+## Print current version
+version:
+	@echo ${VERSION}
+
 ## Show help screen.
 help:
 	@echo "Please use \`make <target>' where <target> is one of\n\n"
