@@ -11,6 +11,10 @@ the Author needs them.
 
 ## How to install
 
+* Download a binary from the [releases page](https://github.com/denibertovic/denv/releases).
+
+To compile the latest source:
+
 * Install [stack](https://docs.haskellstack.org/en/stable/README/)
 * Clone this repo
 * cd to the cloned repo and run: `stack install`
