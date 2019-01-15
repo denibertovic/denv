@@ -200,6 +200,7 @@ denv deactivate
 ## LIMITATIONS
 
 `IMPORTANT`: `deactivate` should always be called first between invoking activate for different envs.
+The only exception to this is the `aws` exec form described above.
 
 ## ZSH completions
 
