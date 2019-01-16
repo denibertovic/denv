@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2e243478e10efbb5b26708af03241ab0a15f2f1bd8bd8c2961d2ff3057bea959
+-- hash: 0454f46bcf925027e46a0afbbad9c8a027bf97aa9f2076a854e359f18d1a3b36
 
 name:           denv
 version:        0.4.0.0
@@ -19,6 +19,8 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
+data-files:
+    LICENSE
 
 source-repository head
   type: git

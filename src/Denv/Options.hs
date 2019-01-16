@@ -26,6 +26,7 @@ data Command
   | Aws AwsProfile [String]
   | Vault FilePath
   | Deactivate
+  | Licence
   | Hook Shell
   | Export Shell
 
@@ -143,6 +144,13 @@ cmdDeactivate = command "deactivate" infos
     desc = progDesc "Deactivate environment."
     options = pure Deactivate
 
+cmdLicence :: Mod CommandFields Command
+cmdLicence = command "licence" infos
+  where
+    infos = info (options <**> helper) desc
+    desc = progDesc "Show licence."
+    options = pure Licence
+
 cmdHook :: Mod CommandFields Command
 cmdHook = command "hook" infos
   where
@@ -161,6 +169,7 @@ argCmds :: Env -> Parser Command
 argCmds env =
   subparser
     (cmdKube <> cmdPass <> cmdTerraform <> cmdVault <> cmdDeactivate <>
+     cmdLicence <>
      cmdSource <>
      cmdHook <>
      cmdAws env <>

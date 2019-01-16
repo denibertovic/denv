@@ -20,8 +20,10 @@ import System.Directory
   )
 import System.Environment (lookupEnv)
 import System.Exit (die, exitSuccess)
+import System.Process.Typed as TP
 import System.FilePath ((</>))
 import System.FilePath.Posix (takeFileName)
+import Paths_denv
 
 import Denv.Options
 import Denv.Types
@@ -36,6 +38,7 @@ entrypoint (DenvArgs (Vault p) debug) = mkVaultEnv p
 entrypoint (DenvArgs (Aws p cmd) debug) = AWS.mkAwsEnv p cmd debug
 entrypoint (DenvArgs (Terraform e) debug) = mkTerraformEnv e
 entrypoint (DenvArgs Deactivate debug) = deactivateEnv
+entrypoint (DenvArgs Licence debug) = showLicence
 entrypoint (DenvArgs (Hook s) debug) = execHook s
 entrypoint (DenvArgs (Export s) debug) = execExport s
 
@@ -143,6 +146,12 @@ deactivateEnv = do
       let env :: [DenvVariable]
           env = map Unset $ T.splitOn "," (T.pack t)
       writeRc (restorePrompt <> env)
+
+showLicence :: IO ()
+showLicence = do
+    l <- getDataFileName "LICENSE"
+    txt <- TIO.readFile l
+    TP.runProcess_ $ TP.shell $ "echo " <> "'"  <> (T.unpack $ txt) <> "'" <> " | less"
 
 execHook :: Shell -> IO ()
 execHook BASH = putStrLn bashHook
