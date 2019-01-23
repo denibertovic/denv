@@ -147,7 +147,7 @@ cmdHook :: Mod CommandFields Command
 cmdHook = command "hook" infos
   where
     infos = info (options <**> helper) desc
-    desc = progDesc "Used to setupt the shell hook."
+    desc = progDesc "Used to setup the shell hook."
     options = Hook <$> argument auto (metavar "SHELL")
 
 cmdExport :: Mod CommandFields Command
