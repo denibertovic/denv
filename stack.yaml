@@ -40,7 +40,8 @@ packages:
 
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps:
+- load-env-0.2.0.2
 # - rio-0.1.2.0
 # - typed-process-0.2.2.0
 # - unliftio-0.2.7.0
