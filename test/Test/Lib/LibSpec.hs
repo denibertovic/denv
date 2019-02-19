@@ -23,26 +23,30 @@ spec =
     it "Tests kube env" $ do
       withRandomTempFile $ \d f -> do
         setEnv "HOME" d
-        _ <- mkKubeEnv f Nothing
+        _ <- mkKubeEnv f Nothing Nothing
         cont <- TIO.readFile (d </> ".denv")
         let config = "export KUBECONFIG=" <> T.pack f <> ";"
         let short = "export KUBECONFIG_SHORT=foobar;"
         let namespace = "export KUBECTL_NAMESPACE=default;"
+        let tillerNamespace = "export TILLER_NAMESPACE=kube-system;"
         let ls = T.lines cont
         (config `elem` ls) `shouldBe` True
         (namespace `elem` ls) `shouldBe` True
+        (tillerNamespace `elem` ls) `shouldBe` True
         (short `elem` ls) `shouldBe` True
     it "Tests kube env with namespace" $ do
       withRandomTempFile $ \d f -> do
         setEnv "HOME" d
-        _ <- mkKubeEnv f (Just "kube-system")
+        _ <- mkKubeEnv f (Just "kube-system") (Just "testing")
         cont <- TIO.readFile (d </> ".denv")
         let config = "export KUBECONFIG=" <> T.pack f <> ";"
         let short = "export KUBECONFIG_SHORT=foobar;"
         let namespace = "export KUBECTL_NAMESPACE=kube-system;"
+        let tillerNamespace = "export TILLER_NAMESPACE=testing;"
         let ls = T.lines cont
         (config `elem` ls) `shouldBe` True
         (namespace `elem` ls) `shouldBe` True
+        (tillerNamespace `elem` ls) `shouldBe` True
         (short `elem` ls) `shouldBe` True
     it "Tests vault env" $ do
       withTempVaultConfig $ \d f -> do
@@ -53,7 +57,7 @@ spec =
     it "Tests sourcing env file" $ do
       withTempVaultConfig $ \d f -> do
         setEnv "HOME" d
-        _ <- mkRawEnv f
+        _ <- mkRawEnv Nothing f
         cont <- TIO.readFile (d </> ".denv")
         (testVaultConfig `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests pass env" $ do
@@ -67,10 +71,10 @@ spec =
               ]
         (ret `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests tf env" $ do
-      withTempTerraformConfig $ \d _ -> do
+      withTempTerraformConfig $ \d f -> do
         setEnv "HOME" d
         setCurrentDirectory d
-        _ <- mkTerraformEnv Prod
+        _ <- mkTerraformEnv f
         cont <- TIO.readFile (d </> ".denv")
         (testTerraformConfig `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests deactivate env" $ do

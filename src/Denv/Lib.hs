@@ -29,67 +29,41 @@ import Denv.Utils
 import qualified Denv.Aws as AWS
 
 entrypoint :: DenvArgs -> IO ()
-entrypoint (DenvArgs (Kube p n) debug) = mkKubeEnv p n
+entrypoint (DenvArgs (Kube p n t) debug) = mkKubeEnv p n t
 entrypoint (DenvArgs (Pass p) debug) = mkPassEnv p
-entrypoint (DenvArgs (Source p) debug) = mkRawEnv p
+entrypoint (DenvArgs (Source p) debug) = mkRawEnv Nothing p
 entrypoint (DenvArgs (Vault p) debug) = mkVaultEnv p
 entrypoint (DenvArgs (Aws p cmd) debug) = AWS.mkAwsEnv p cmd debug
-entrypoint (DenvArgs (Terraform e) debug) = mkTerraformEnv e
+entrypoint (DenvArgs (Terraform p) debug) = mkTerraformEnv p
 entrypoint (DenvArgs Deactivate debug) = deactivateEnv
 entrypoint (DenvArgs (Hook s) debug) = execHook s
 entrypoint (DenvArgs (Export s) debug) = execExport s
 
-mkRawEnv :: FilePath -> IO ()
-mkRawEnv p = do
+mkRawEnv :: Maybe String -> FilePath -> IO ()
+mkRawEnv mp p = do
   checkEnv
   exists <- doesFileExist p
   unless exists (die $ "ERROR: File does not exist: " ++ p)
   let p' = mkRawEnvShort p
   c <- TIO.readFile p
   deac <- parseEnvFileOrDie p' c
+  let prp = T.pack $ maybe "raw|" (\x -> x <> "|") mp
   let env =
         withVarTracking
           (Just deac)
           [ Set OldPrompt ps1
           , Set RawEnvFile $ T.pack p'
-          , Set Prompt $ mkEscapedText "raw|$RAW_ENV_FILE $PS1"
+          , Set Prompt $ mkEscapedText $ prp <> "$RAW_ENV_FILE $PS1"
           ]
   writeRcWithPredefined c env
-
 
 mkVaultEnv :: FilePath -> IO ()
 mkVaultEnv p = do
-  checkEnv
-  exists <- doesFileExist p
-  unless exists (die $ "ERROR: VaultConfig file does not exist: " ++ p)
-  let p' = takeFileName p
-  c <- TIO.readFile p
-  deac <- parseEnvFileOrDie p' c
-  let env =
-        withVarTracking
-          (Just deac)
-          [ Set OldPrompt ps1
-          , Set VaultConfig $ T.pack p'
-          , Set Prompt $ mkEscapedText "vault|$VAULT_CONFIG $PS1"
-          ]
-  writeRcWithPredefined c env
+  mkRawEnv (Just "vault") p
 
-mkTerraformEnv :: EnvironmentType -> IO ()
-mkTerraformEnv e = do
-  checkEnv
-  curDirPath <- getCurrentDirectory
-  let path = curDirPath </> show e
-  exists <- doesDirectoryExist path
-  unless exists (die $ "ERROR: Directory does not exist " ++ path)
-  c <- TIO.readFile (path </> "env")
-  deac <- parseEnvFileOrDie path c
-  let env =
-        withVarTracking
-          (Just deac)
-          [ Set OldPrompt ps1
-          , Set Prompt $ mkEscapedText "terraform|$ENVIRONMENT $PS1"
-          ]
-  writeRcWithPredefined c env
+mkTerraformEnv :: FilePath -> IO ()
+mkTerraformEnv p = do
+  mkRawEnv (Just "tf") p
 
 mkPassEnv :: Maybe PasswordStorePath -> IO ()
 mkPassEnv p = do
@@ -109,22 +83,24 @@ mkPassEnv p = do
           ]
   writeRc env
 
-mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
-mkKubeEnv p n = do
+mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> Maybe TillerNamespace -> IO ()
+mkKubeEnv p n t = do
   checkEnv
   exists <- doesFileExist p
   unless exists (die $ "ERROR: Kubeconfig does not exist: " ++ p)
   let p' = takeFileName p
   let n' = fromMaybe "default" n
+  let t' = fromMaybe "kube-system" t
   let env =
         withVarTracking
           Nothing
           [ Set KubeConfig $ T.pack p
           , Set KubeConfigShort $ T.pack p'
           , Set KubectlNamespace $ T.pack n'
+          , Set TillerNamespace $ T.pack t'
           , Set OldPrompt ps1
           , Set Prompt $
-            mkEscapedText "k8s|$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1"
+            mkEscapedText $ "k8s|n:$KUBECTL_NAMESPACE|t:$TILLER_NAMESPACE|$KUBECONFIG_SHORT $PS1"
           ]
   writeRc env
 

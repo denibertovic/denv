@@ -20,8 +20,9 @@ data DenvArgs = DenvArgs
 data Command
   = Kube KubeProjectName
          (Maybe KubeNamespace)
+         (Maybe TillerNamespace)
   | Pass (Maybe PasswordStorePath)
-  | Terraform EnvironmentType
+  | Terraform FilePath
   | Source FilePath
   | Aws AwsProfile [String]
   | Vault FilePath
@@ -65,6 +66,13 @@ kubeNamespaceOpt =
     (long "kube-namespace" <> short 'n' <> metavar "NAMESPACE" <>
      help "Kube Namespace. Example: kube-system or default.")
 
+tillerNamespaceOpt :: Parser (Maybe String)
+tillerNamespaceOpt =
+  optional $
+  strOption
+    (long "tiller-namespace" <> short 't' <> metavar "NAMESPACE" <>
+     help "Tiller Namespace. Example: kube-system or default.")
+
 kubeProjectOpt :: Parser String
 kubeProjectOpt =
   strOption
@@ -92,6 +100,12 @@ vaultProjectOpt =
     (long "vault-project" <> short 'p' <> metavar "PATH" <>
      help "Vault env file path")
 
+terraformEnvOpt :: Parser String
+terraformEnvOpt =
+  strOption
+    (long "terraform-project" <> short 'p' <> metavar "PATH" <>
+     help "Terraform env file path")
+
 cmdSource :: Mod CommandFields Command
 cmdSource = command "source" infos
   where
@@ -112,7 +126,7 @@ cmdTerraform = command "tf" infos
     infos = info (options <**> helper) desc
     desc = progDesc "Set terraform environment."
     options =
-      Terraform <$> argument (maybeReader readEnvironmentType) (metavar "ENV")
+      Terraform <$> terraformEnvOpt
 
 cmdAws :: Env -> Mod CommandFields Command
 cmdAws env = command "aws" infos
@@ -127,7 +141,7 @@ cmdKube = command "kube" infos
   where
     infos = info (options <**> helper) desc
     desc = progDesc "Set kube environment."
-    options = Kube <$> kubeProjectOpt <*> kubeNamespaceOpt
+    options = Kube <$> kubeProjectOpt <*> kubeNamespaceOpt <*> tillerNamespaceOpt
 
 cmdPass :: Mod CommandFields Command
 cmdPass = command "pass" infos

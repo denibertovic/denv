@@ -11,6 +11,7 @@ import Data.Typeable
 type KubeProjectName = String
 
 type KubeNamespace = String
+type TillerNamespace = String
 
 type PasswordStorePath = String
 
@@ -49,12 +50,14 @@ data KubeVariable
   = KubeConfig
   | KubeConfigShort
   | KubectlNamespace
+  | TillerNamespace
   deriving (Eq)
 
 instance Show KubeVariable where
   show KubeConfig = "KUBECONFIG"
   show KubeConfigShort = "KUBECONFIG_SHORT"
   show KubectlNamespace = "KUBECTL_NAMESPACE"
+  show TillerNamespace = "TILLER_NAMESPACE"
 
 data PassVariable
   = PasswordStoreDir

@@ -48,7 +48,11 @@ __source () {
         "files:filename:_files" \
 }
 
-__tf () {}
+__tf() {
+    _arguments \
+        "(-p --terraform-project)"{-p,--terraform-project=}"[Terraform env file path]:project:_files" \
+}
+
 
 __deactivate () {}
 
@@ -72,7 +76,8 @@ __kube_namespaces=(default kube-system monitoring review)
 __kube() {
     _arguments \
         "(-p --kube-project)"{-p,--kube-project=}"[Kube project]:project:_files" \
-        "(-n --kube-namespace)"{-n,--kube-namespace=}"[Kube namespace]:namespace:($__kube_namespaces)"
+        "(-n --kube-namespace)"{-n,--kube-namespace=}"[Kube namespace]:namespace:($__kube_namespaces)" \
+        "(-t --tiller-namespace)"{-t,--tiller-namespace=}"[Tiller namespace]:namespace:($__kube_namespaces)" \
 }
 
 __denv_commands () {

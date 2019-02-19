@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bb7b05cdeaf4a84c8eaefa79748c35904fde5239c448d8a810ff50c1247058ac
+-- hash: 909f8e11cfdeacc9e713d84647df54b889ccf87cbcfd4de621a01ee20aa37074
 
 name:           denv
-version:        0.4.0.1
+version:        0.5.0.0
 description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
 homepage:       https://github.com/denibertovic/denv#readme
 bug-reports:    https://github.com/denibertovic/denv/issues

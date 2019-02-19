@@ -78,6 +78,42 @@ Or specify a path to the password store:
 denv pass -p /path/to/password-store
 ```
 
+## Raw
+
+Example config file in `/tmp/env`:
+
+```bash
+export FOO=foo
+```
+
+Activate env with:
+
+```bash
+denv source /tmp/env
+```
+
+`NOTE`: In essence this just exports whatever is written in the env file and keeps track of it
+so that we can unset it later.
+
+## Terraform
+
+Example config file in `prod/env`:
+
+```bash
+export ENVIRONMENT=prod
+export TF_VAR_some_var_foo=$ENVIRONMENT-foo
+
+```
+
+Activate env with:
+
+```bash
+denv tf -p prod/env
+```
+
+`NOTE`: This command is implemented in terms of the above `raw`.
+The only difference is that the prompt will say `tf` instead of `raw`.
+
 ## Vault env
 
 Example config file in `~/.vault/example`:
@@ -93,6 +129,9 @@ Activate env with:
 ```bash
 denv vault -p ~/.vault/example
 ```
+
+`NOTE`: As with the `tf` command, this too is implemented in terms of the `raw` command.
+The only difference is that the prompt will show `vault` instead of `raw`.
 
 ## AWS env (Beta)
 
