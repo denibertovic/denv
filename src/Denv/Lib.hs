@@ -135,6 +135,7 @@ execExport _ = do
   removeFile rc
 
 -- This is inspired by [direnv](https://github.com/direnv/direnv) (all credits to the authors).
+-- LICENCE: https://github.com/direnv/direnv/blob/80adc42d27ce1048eb7829e1150691c967b3d60e/LICENSE.md
 zshHook :: String
 zshHook =
   unlines
@@ -148,6 +149,7 @@ zshHook =
     ]
 
 -- This is inspired by [direnv](https://github.com/direnv/direnv) (all credits to the authors).
+-- LICENCE: https://github.com/direnv/direnv/blob/80adc42d27ce1048eb7829e1150691c967b3d60e/LICENSE.md
 bashHook :: String
 bashHook =
   unlines
