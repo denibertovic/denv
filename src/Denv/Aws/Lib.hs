@@ -333,6 +333,7 @@ mkAwsEnv p cmd debug = do
                 let env = Map.fromList [ (show AwsAccessKeyId, T.unpack $ toText k)
                                        , (show AwsSecretAccessKey, T.unpack $ toText s)
                                        , (show AwsDefaultRegion, T.unpack $ toText region')
+                                       , (show AwsRegion, T.unpack $ toText region')
                                        ]
                 let env' = maybe env (\t ->
                               Map.insert (show AwsSecurityToken) (T.unpack $ toText t) $
@@ -354,6 +355,7 @@ mkAwsEnv' p region (AwsEnvAuth k s sesst)=
     , maybe (Unset AwsSessionToken) (\x -> Set AwsSessionToken $ toText x) sesst
     , Set AwsSecurityToken $ mkEscapedText "$AWS_SESSION_TOKEN"
     , Set AwsDefaultRegion (toText region)
+    , Set AwsRegion (toText region)
     , Set OldPrompt ps1
     , Set Prompt $ mkEscapedText $ "aws|" <> fromAwsProfile p <> " $PS1"
     ]

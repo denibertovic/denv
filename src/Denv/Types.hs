@@ -37,6 +37,7 @@ data AwsVariable
   | AwsSessionToken
   | AwsSecurityToken
   | AwsDefaultRegion
+  | AwsRegion
   deriving (Eq)
 
 instance Show AwsVariable where
@@ -45,6 +46,7 @@ instance Show AwsVariable where
   show AwsSessionToken = "AWS_SESSION_TOKEN"
   show AwsSecurityToken = "AWS_SECURITY_TOKEN"
   show AwsDefaultRegion = "AWS_DEFAULT_REGION"
+  show AwsRegion = "AWS_REGION"
 
 data KubeVariable
   = KubeConfig
