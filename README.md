@@ -11,9 +11,24 @@ the Author needs them.
 
 ## How to install
 
-* Download a binary from the [releases page](https://github.com/denibertovic/denv/releases).
+* Download a binary from the [releases page](https://github.com/denibertovic/denv/releases)
+* Add the below line at the end of your `.bashrc` or `.zshrc` :
 
-To compile the latest source:
+For ZSH:
+
+```bash
+eval "$(denv hook ZSH)"
+```
+
+For BASH:
+
+```bash
+eval "$(denv hook BASH)"
+```
+
+`NOTE`: Make sure to use all caps when choosing the SHELL.
+
+### To compile the latest source:
 
 * Install [stack](https://docs.haskellstack.org/en/stable/README/)
 * Clone this repo
@@ -35,20 +50,6 @@ Add alias to `.zshrc` or `.bashrc`:
 ```bash
 alias k='kubectl --namespace=${KUBECTL_NAMESPACE:-default}'
 ```
-
-And add the hook at the end of your `.zshrc` or `.bashrc` file:
-
-```bash
-eval "$(denv hook ZSH)"
-```
-
-Or
-
-```bash
-eval "$(denv hook BASH)"
-```
-
-`NOTE`: Make sure to use all caps when choosing the SHELL.
 
 Activate kube env:
 
