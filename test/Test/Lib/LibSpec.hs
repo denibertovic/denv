@@ -51,7 +51,7 @@ spec =
     it "Tests vault env" $ do
       withTempVaultConfig $ \d f -> do
         setEnv "HOME" d
-        _ <- mkVaultEnv f
+        _ <- mkRawEnv Nothing f
         cont <- TIO.readFile (d </> ".denv")
         (testVaultConfig `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests sourcing env file" $ do
@@ -74,7 +74,7 @@ spec =
       withTempTerraformConfig $ \d f -> do
         setEnv "HOME" d
         setCurrentDirectory d
-        _ <- mkTerraformEnv f
+        _ <- mkRawEnv Nothing f
         cont <- TIO.readFile (d </> ".denv")
         (testTerraformConfig `isPrefixOf` T.lines cont) `shouldBe` True
     it "Tests deactivate env" $ do
@@ -87,15 +87,15 @@ spec =
         (expected == cont) `shouldBe` True
     it "Tests tracking vars works" $ do
       let env = [ Set OldPrompt ps1
-                , Set VaultConfig "foobar"
-                , Set Prompt $ mkEscapedText "vault|$VAULT_CONFIG $PS1"
+                , Set KubeConfig "foobar"
+                , Set Prompt $ mkEscapedText "bar | $PS1"
                 ]
-      let expected = Set DenvSetVars "_OLD_DENV_PS1,VAULT_CONFIG,_DENV_SET_VARS"
+      let expected = Set DenvSetVars "_OLD_DENV_PS1,KUBECONFIG,_DENV_SET_VARS"
       let ret = withVarTracking Nothing env
       (expected `elem` ret) `shouldBe` True
       let predefined = "FOO,"
       let ret2 = withVarTracking (Just predefined) env
-      let expected2 = Set DenvSetVars "_OLD_DENV_PS1,VAULT_CONFIG,FOO,_DENV_SET_VARS"
+      let expected2 = Set DenvSetVars "_OLD_DENV_PS1,KUBECONFIG,FOO,_DENV_SET_VARS"
       (expected2 `elem` ret2) `shouldBe` True
 
 
