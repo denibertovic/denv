@@ -14,11 +14,21 @@ type KubeNamespace = String
 type TillerNamespace = String
 
 type PasswordStorePath = String
+type GoogleCredentialsPath = String
 
 data Shell
   = BASH
   | ZSH
   deriving (Show, Eq, Read)
+
+data GcpVariable
+ = GoogleCredentials
+ | GoogleCredentialsShort
+ deriving (Eq)
+
+instance Show GcpVariable where
+  show GoogleCredentials = "GOOGLE_CREDENTIALS"
+  show GoogleCredentialsShort = "GOOGLE_CREDENTIALS_SHORT"
 
 data AwsVariable
   = AwsAccessKeyId

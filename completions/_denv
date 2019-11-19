@@ -26,6 +26,9 @@ _denv () {
         aws)
             __aws
         ;;
+        gcp)
+            __gcp
+        ;;
         deactivate)
             __deactivate
         ;;
@@ -56,6 +59,11 @@ __aws() {
         "(-p --profile)"{-p,--profile=}"[AWS profile to use]" \
 }
 
+__gcp() {
+    _arguments \
+        "(-p --google-credentials-path)"{-p,--google-credentials-path=}"[Google credentials file to use]:path:_files" \
+}
+
 __kube_namespaces=(default kube-system monitoring review)
 
 __kube() {
@@ -72,6 +80,7 @@ __denv_commands () {
         "pass[Set pass environment]" \
         "source[Source raw env file]" \
         "aws[Set AWS profile to use]" \
+        "gcp[Set GCP credentials file to use]" \
         "deactivate[Deactivate environment]"
 }
 

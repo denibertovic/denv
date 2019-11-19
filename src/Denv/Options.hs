@@ -22,6 +22,7 @@ data Command
          (Maybe KubeNamespace)
          (Maybe TillerNamespace)
   | Pass (Maybe PasswordStorePath)
+  | Gcp GoogleCredentialsPath
   | Source (Maybe String) FilePath
   | Aws AwsProfile [String]
   | Deactivate
@@ -44,6 +45,12 @@ versionOpt =
   infoOption
     (showVersion version)
     (long "version" <> short 'v' <> help "Show version.")
+
+gcpCredsOpt :: Parser String
+gcpCredsOpt =
+  strOption
+    (long "google-credentials-path" <> short 'p' <> metavar "PATH" <>
+     help "Full path to the google credentials JSON file.")
 
 passPathOpt :: Parser (Maybe String)
 passPathOpt =
@@ -124,6 +131,13 @@ cmdPass = command "pass" infos
     desc = progDesc "Set pass environment."
     options = Pass <$> passPathOpt
 
+cmdGcp :: Mod CommandFields Command
+cmdGcp = command "gcp" infos
+  where
+    infos = info (options <**> helper) desc
+    desc = progDesc "Set GCP credentials."
+    options = Gcp <$> gcpCredsOpt
+
 cmdDeactivate :: Mod CommandFields Command
 cmdDeactivate = command "deactivate" infos
   where
@@ -152,6 +166,7 @@ argCmds env =
      cmdSource <>
      cmdHook <>
      cmdAws env <>
+     cmdGcp <>
      cmdExport)
 
 denvArgs :: Env -> Parser DenvArgs

@@ -30,6 +30,7 @@ import qualified Denv.Aws as AWS
 
 entrypoint :: DenvArgs -> IO ()
 entrypoint (DenvArgs (Kube p n t) debug) = mkKubeEnv p n t
+entrypoint (DenvArgs (Gcp p) debug) = mkGcpEnv p
 entrypoint (DenvArgs (Pass p) debug) = mkPassEnv p
 entrypoint (DenvArgs (Source l p) debug) = mkRawEnv l p
 entrypoint (DenvArgs (Aws p cmd) debug) = AWS.mkAwsEnv p cmd debug
@@ -42,7 +43,7 @@ mkRawEnv mp p = do
   checkEnv
   exists <- doesFileExist p
   unless exists (die $ "ERROR: File does not exist: " ++ p)
-  let p' = mkRawEnvShort p
+  let p' = mkNameShort p
   c <- TIO.readFile p
   deac <- parseEnvFileOrDie p' c
   let prp = T.pack $ maybe "raw|" (\x -> x <> "|") mp
@@ -62,7 +63,7 @@ mkPassEnv p = do
   let p' = fromMaybe curDirPath p
   exists <- doesDirectoryExist p'
   unless exists (die $ "ERROR: Password store does not exist: " ++ p')
-  let p'' = mkPassDirShort p'
+  let p'' = mkNameShort p'
   let env =
         withVarTracking
           Nothing
@@ -70,6 +71,22 @@ mkPassEnv p = do
           , Set PasswordStoreDirShort $ T.pack p''
           , Set OldPrompt ps1
           , Set Prompt $ mkEscapedText "pass|$PASSWORD_STORE_DIR_SHORT $PS1"
+          ]
+  writeRc env
+
+mkGcpEnv :: GoogleCredentialsPath  -> IO ()
+mkGcpEnv p = do
+  checkEnv
+  exists <- doesFileExist p
+  unless exists (die $ "ERROR: Google credentials file does not exist: " ++ p)
+  let p' = mkNameShort p
+  let env =
+        withVarTracking
+          Nothing
+          [ Set GoogleCredentials $ T.pack p
+          , Set GoogleCredentialsShort $ T.pack p'
+          , Set OldPrompt ps1
+          , Set Prompt $ mkEscapedText "gcp|$GOOGLE_CREDENTIALS_SHORT $PS1"
           ]
   writeRc env
 
