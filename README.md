@@ -109,11 +109,11 @@ export TF_VAR_some_var_foo=$ENVIRONMENT-foo
 Activate env with:
 
 ```bash
-denv tf -p prod/env
+denv source prod/env
 ```
 
-`NOTE`: This command is implemented in terms of the above `raw`.
-The only difference is that the prompt will say `tf` instead of `raw`.
+`NOTE`: This command has been removed in in the TODO version in favor of
+using the above "raw" `source` command.
 
 ## Vault env
 
@@ -128,11 +128,10 @@ export VAULT_SKIP_VERIFY=true
 Activate env with:
 
 ```bash
-denv vault -p ~/.vault/example
+denv source ~/.vault/example
 ```
 
-`NOTE`: As with the `tf` command, this too is implemented in terms of the `raw` command.
-The only difference is that the prompt will show `vault` instead of `raw`.
+`NOTE`: As with the `terraform` command, this too has been removed in favor of the "raw" `source` command.
 
 ## AWS env (Beta)
 

@@ -31,10 +31,8 @@ import qualified Denv.Aws as AWS
 entrypoint :: DenvArgs -> IO ()
 entrypoint (DenvArgs (Kube p n t) debug) = mkKubeEnv p n t
 entrypoint (DenvArgs (Pass p) debug) = mkPassEnv p
-entrypoint (DenvArgs (Source p) debug) = mkRawEnv Nothing p
-entrypoint (DenvArgs (Vault p) debug) = mkVaultEnv p
+entrypoint (DenvArgs (Source l p) debug) = mkRawEnv l p
 entrypoint (DenvArgs (Aws p cmd) debug) = AWS.mkAwsEnv p cmd debug
-entrypoint (DenvArgs (Terraform p) debug) = mkTerraformEnv p
 entrypoint (DenvArgs Deactivate debug) = deactivateEnv
 entrypoint (DenvArgs (Hook s) debug) = execHook s
 entrypoint (DenvArgs (Export s) debug) = execExport s
@@ -56,14 +54,6 @@ mkRawEnv mp p = do
           , Set Prompt $ mkEscapedText $ prp <> "$RAW_ENV_FILE $PS1"
           ]
   writeRcWithPredefined c env
-
-mkVaultEnv :: FilePath -> IO ()
-mkVaultEnv p = do
-  mkRawEnv (Just "vault") p
-
-mkTerraformEnv :: FilePath -> IO ()
-mkTerraformEnv p = do
-  mkRawEnv (Just "tf") p
 
 mkPassEnv :: Maybe PasswordStorePath -> IO ()
 mkPassEnv p = do

@@ -20,17 +20,6 @@ data Shell
   | ZSH
   deriving (Show, Eq, Read)
 
-data EnvironmentType
-  = Prod
-  | Staging
-  | Other String
-  deriving (Eq, Read)
-
-instance Show EnvironmentType where
-  show Prod = "prod"
-  show Staging = "staging"
-  show (Other s) = s
-
 data AwsVariable
   = AwsAccessKeyId
   | AwsSecretAccessKey
@@ -69,19 +58,6 @@ data PassVariable
 instance Show PassVariable where
   show PasswordStoreDir = "PASSWORD_STORE_DIR"
   show PasswordStoreDirShort = "PASSWORD_STORE_DIR_SHORT"
-
-data VaultVariable
-  = VaultConfig
-  | VaultAddr
-  | VaultToken
-  | VaultSkipVerify
-  deriving (Eq)
-
-instance Show VaultVariable where
-  show VaultConfig = "VAULT_CONFIG"
-  show VaultAddr = "VAULT_ADDR"
-  show VaultToken = "VAULT_TOKEN"
-  show VaultSkipVerify = "VAULT_SKIP_VERIFY"
 
 data SpecialVariable
   = Prompt

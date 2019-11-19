@@ -17,12 +17,6 @@ _denv () {
         pass)
             __pass
         ;;
-        vault)
-            __vault
-        ;;
-        tf)
-            __tf
-        ;;
         fetch)
             __fetch
         ;;
@@ -44,26 +38,17 @@ __fetch () {
 }
 
 __source () {
+    _arguments |
+        "(-l --label)"{-l,--label=}"[Label]" \
     _alternative \
         "files:filename:_files" \
 }
-
-__tf() {
-    _arguments \
-        "(-p --terraform-project)"{-p,--terraform-project=}"[Terraform env file path]:project:_files" \
-}
-
 
 __deactivate () {}
 
 __pass() {
     _arguments \
         "(-p --password-store-path)"{-p,--password-store-path=}"[Password store path]:path:_files" \
-}
-
-__vault() {
-    _arguments \
-        "(-p --vault-project)"{-p,--vault-project=}"[Vault env file path]:path:_files" \
 }
 
 __aws() {
@@ -86,8 +71,6 @@ __denv_commands () {
         "kube[Set kube environment]" \
         "pass[Set pass environment]" \
         "source[Source raw env file]" \
-        "vault[Set vault environment]" \
-        "tf[Set terraform environment]" \
         "aws[Set AWS profile to use]" \
         "deactivate[Deactivate environment]"
 }

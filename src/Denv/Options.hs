@@ -22,10 +22,8 @@ data Command
          (Maybe KubeNamespace)
          (Maybe TillerNamespace)
   | Pass (Maybe PasswordStorePath)
-  | Terraform FilePath
-  | Source FilePath
+  | Source (Maybe String) FilePath
   | Aws AwsProfile [String]
-  | Vault FilePath
   | Deactivate
   | Hook Shell
   | Export Shell
@@ -37,11 +35,6 @@ environ r k env = maybe idm value $ r =<< lookup k env
 
 readAwsProfile :: String -> Maybe AwsProfile
 readAwsProfile s = Just $ AwsProfile $ T.pack s
-
-readEnvironmentType :: String -> Maybe EnvironmentType
-readEnvironmentType "prod" = Just Prod
-readEnvironmentType "staging" = Just Staging
-readEnvironmentType s = Just $ Other s
 
 debugSwitch :: Parser Bool
 debugSwitch = switch (long "debug" <> help "Debug mode. Verbose output.")
@@ -58,6 +51,14 @@ passPathOpt =
   strOption
     (long "password-store-path" <> short 'p' <> metavar "PATH" <>
      help "Full path to password store directory.")
+
+labelOpt :: Parser (Maybe String)
+labelOpt =
+  optional $
+  strOption
+    (long "label" <> short 'l' <> metavar "LABEL" <>
+     help "The label to be used in the prompt.")
+
 
 kubeNamespaceOpt :: Parser (Maybe String)
 kubeNamespaceOpt =
@@ -94,39 +95,12 @@ awsProfileOpt env =
     (long "profile" <> short 'p' <> metavar "PROFILE" <> environ readAwsProfile "AWS_DEFAULT_PROFILE" env <>
      help "Aws profile to use. Must be defined in ~/.aws/config.")
 
-vaultProjectOpt :: Parser String
-vaultProjectOpt =
-  strOption
-    (long "vault-project" <> short 'p' <> metavar "PATH" <>
-     help "Vault env file path")
-
-terraformEnvOpt :: Parser String
-terraformEnvOpt =
-  strOption
-    (long "terraform-project" <> short 'p' <> metavar "PATH" <>
-     help "Terraform env file path")
-
 cmdSource :: Mod CommandFields Command
 cmdSource = command "source" infos
   where
     infos = info (options <**> helper) desc
     desc = progDesc "Source env file."
-    options = Source <$> envFilePathOpt
-
-cmdVault :: Mod CommandFields Command
-cmdVault = command "vault" infos
-  where
-    infos = info (options <**> helper) desc
-    desc = progDesc "Set vault environment."
-    options = Vault <$> vaultProjectOpt
-
-cmdTerraform :: Mod CommandFields Command
-cmdTerraform = command "tf" infos
-  where
-    infos = info (options <**> helper) desc
-    desc = progDesc "Set terraform environment."
-    options =
-      Terraform <$> terraformEnvOpt
+    options = Source <$> labelOpt <*> envFilePathOpt
 
 cmdAws :: Env -> Mod CommandFields Command
 cmdAws env = command "aws" infos
@@ -174,7 +148,7 @@ cmdExport = command "export" infos
 argCmds :: Env -> Parser Command
 argCmds env =
   subparser
-    (cmdKube <> cmdPass <> cmdTerraform <> cmdVault <> cmdDeactivate <>
+    (cmdKube <> cmdPass <> cmdDeactivate <>
      cmdSource <>
      cmdHook <>
      cmdAws env <>
