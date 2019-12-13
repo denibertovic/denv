@@ -75,10 +75,16 @@ writeRc env = do
 
 writeRcWithPredefined :: T.Text -> [DenvVariable] -> IO ()
 writeRcWithPredefined c env = do
-  h <- getHomeDirectory
-  let rc = h </> ".denv"
-  TIO.writeFile rc c
-  TIO.appendFile rc (toEnv env)
+    h <- getHomeDirectory
+    let rc = h </> ".denv"
+    let exportedLines = T.intercalate "\n" $ map appendExport $ T.splitOn("\n") c
+    TIO.writeFile rc exportedLines
+    TIO.appendFile rc (toEnv env)
+  where appendExport l = case (T.isPrefixOf "#" l) of
+                          True -> l
+                          False -> case (T.isPrefixOf "export" l) of
+                                    True -> l
+                                    False -> "export " <> l
 
 parseEnvFileOrDie :: FilePath -> T.Text -> IO T.Text
 parseEnvFileOrDie p c = do
