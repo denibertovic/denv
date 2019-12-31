@@ -4,7 +4,7 @@
 
 module Denv.Lib where
 
-import RIO
+import RIO hiding (exitSuccess)
 
 import Control.Monad (unless)
 import Data.Maybe (fromMaybe)
