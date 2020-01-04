@@ -5,8 +5,6 @@ env:
 
 install:
   - echo $DINAMO
-  - python -c "import os; print('1: ', os.environ.get('DINAMO'))"
 
 script:
   - echo $DINAMO
-  - python -c "import os; print('1: ', os.environ.get('DINAMO'))"
