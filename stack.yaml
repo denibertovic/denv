@@ -41,6 +41,10 @@ packages:
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
 extra-deps:
+- amazonka-1.6.1@sha256:d863557379350ed6bbb91187abeb8c349a654f60b140d138710486f58ae7c476,3536
+- amazonka-core-1.6.1@sha256:9bc59ce403c6eeba3b3eaf3f10e5f0b6a33b6edbbf8f6de0dd6f4c67b86fa698,5135
+- amazonka-sts-1.6.1@sha256:224759e5e45234064864a66b504c9c300028c50939184f533c004dea351156b1,3190
+
 # - load-env-0.2.0.2
 # - rio-0.1.2.0
 # - typed-process-0.2.2.0
