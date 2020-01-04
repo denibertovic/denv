@@ -9,5 +9,5 @@ env:
     - DINAMO="dinamo"
 
 script:
-  - python -c "import os; print('1: ', os.environ["DINAMO"])"
+- python -c "import os; print('1: ', os.environ['DINAMO'])"
 
