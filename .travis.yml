@@ -1,13 +1,11 @@
-# Do not choose a language; we provide our own build tools.
 language: python
 
 env:
   global:
-    - RUN_INTEGRATION_TESTS=1
-    - STACK_ARGS=""
-    - GITHUB_RELEASE_VERSION=1.2.0
     - DINAMO="dinamo"
 
-script:
-- python -c "import os; print('1: ', os.environ['DINAMO'])"
+install:
+  - python -c "import os; print('1: ', os.environ['DINAMO'])"
 
+script:
+  - python -c "import os; print('1: ', os.environ.get('DINAMO'))"
