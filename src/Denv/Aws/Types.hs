@@ -20,44 +20,7 @@ import Network.AWS.Data.Time (UTCTime, ISO8601)
 
 data AwsEnvAuth = AwsEnvAuth AWS.AccessKey AWS.SecretKey (Maybe AWS.SessionToken)
 
--- role cache credentials: we already made a STS request and assumed a role and got back a key/secret that expires
--- session cache credentials: these are the STS session credentials used for requesting the Role Creds. Must have MFA
--- no session creds: using just what's in the config file: here we just use the key and secret specified in the
---     config file
--- data AwsEnvF a =
---     CachedSTS AwsEnvSessionCache
---   | CachedRole AwsEnvRoleCache
---   | STS AWS.AccessKey AWS.SecretKey MfaSerial -- Note how we require MFA
---   | STSWithRole AWS.AccessKey AWS.SecretKey MfaSerial RoleArn  -- Note how we require MFA here
---   | Raw AWS.AccessKey AWS.SecretKey
---   | RawWithRole AWS.AccessKey AWS.SecretKey RoleArn
---   deriving (Functor)
-
--- type AwsEnv = Free AwsEnvF
-
 newtype AwsEnvT a =  AwsEnvT { runAwsEnvT :: ReaderT AwsEnvConfig IO a}
-
--- liftF :: Functor f => f a -> Free f a
--- liftF command = Free (fmap Pure command)
-
--- runAwsEnv :: AwsEnv a -> IO ()
--- runAwsEnv (Free (CachedSTS sessionCache)) = undefined
--- runAwsEnv (Free (CachedRole roleCache)) = undefined
--- runAwsEnv (Free (STS key secret mfa)) = undefined
--- runAwsEnv (Free (STSWithRole key secret mfa role)) = undefined
--- runAwsEnv (Free (Raw key secret)) = undefined
--- runAwsEnv (Free (RawWithRole key secret role)) = undefined
-
--- data AwsEnvAuth a where
---   CachedSTS :: AwsEnvSessionCache ->
---   CachedRole :: AwsEnvRoleCache -> _
-
---   STS :: AWS.AccessKey -> AWS.SecretKey -> MfaSerial -> _
---   STSWithRole :: AWS.AccessKey -> AWS.SecretKey -> MfaSerial -> RoleArn -> _
-
---   Raw :: AWS.AccessKey -> AWS.SecretKey -> Maybe MfaSerial -> _
---   RawWithRole :: AWS.AccessKey -> AWS.SecretKey -> Maybe MfaSerial -> RoleArn -> _
-
 
 newtype MfaSerial = MfaSerial T.Text deriving (Eq, Show, Read)
 newtype RoleArn = RoleArn T.Text deriving (Eq, Show, Read)
@@ -224,47 +187,3 @@ instance FromJSON AwsEnvSessionCache where
       AwsEnvSessionCache <$> c .: "AccessKeyId" <*> c .: "SecretAccessKey" <*>
         c .:? "SessionToken" <*>
         c .:? "Expiration"
-
--- Here's an annotated example (all fields are optional, and defaults or values
--- from the AWS CLI configuration will be used for any ommitted values):
---     # The default AWS region.
---     region=us-east-1
---     # Profile name. Note that this profile does not need to exist in the AWS CLI
---     # configuration if a source_profile is set, but it is displayed to the user
---     # and in the prompt.
---     profile=admin
---     # The AWS CLI profile to use when creating the temporary session.
---     source_profile=signin
---     # The ARN of the role to assume.
---     role_arn=arn:aws:iam::123456789000:role/admin
---     # How long until the MFA session expires. This defaults to the maximum
---     # 129600 (36 hours).
---     mfa_duration_seconds=43200
---     # How long until the role session expires. This defaults to the maximum 3600
---     # (1 hour).  AWS: From 1 hours to max 12 hours (set on a per role basis)
---     # so if role has it's max set to 5 minutes you can't exceed that
---     role_duration_seconds=1800
---     # Percentage of MFA token duration at which to refresh it. The default is to
---     # request a new token after 65% of the old token's duration has passed.
---     mfa_refresh_factor=50
---     # Percentage of role token duration at which to refresh it. The default is
---     # to request a new token after 35% of the old token's duration has passed.
---     role_refresh_factor=10
---     # The 'printf' format for the profile in the bash prompt. This can include
---     # terminal escape sequences to change the colour.  Defaults to '[%s]'
---     prompt_format=\[\033[1;31m\](%s)\[\033[0m\]
--- ### The following environment variables are read by aws-env:
--- `AWS_DEFAULT_PROFILE`: AWS CLI profile to use. Defaults to `default`.
--- `default` is used.
--- `AWS_CONFIG_FILE`: Location of the AWS CLI config file. Defaults to
--- `~/.aws/config`.
--- `AWS_ENV_CACHE_DIR`: Location of cached credentials. Defaults to
--- `~/.aws-env/`
--- ### The following standard AWS environment variables are **set** by aws-env:
--- - `AWS_ACCESS_KEY_ID`
--- - `AWS_SECRET_ACCESS_KEY`
--- - `AWS_SESSION_TOKEN`
--- - `AWS_SECURITY_TOKEN`
--- - `AWS_DEFAULT_REGION`
--- In addition, `AWS_ENV_CURRENT_PROFILE` is set to the name of the current
--- profile.
