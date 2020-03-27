@@ -3,6 +3,7 @@
 .DEFAULT_GOAL = help
 
 VERSION ?= $(shell grep "^version:" denv.cabal | cut -d " " -f9)
+STATIC_BUILD_SCRIPT ?= $(shell nix-build --no-link -A fullBuildScript)
 
 ## Run build
 build:
@@ -19,6 +20,10 @@ test:
 ## Cut new release
 release:
 	@git tag ${VERSION} && git push --tags
+
+## Build static binary with nix
+static:
+	@$(STATIC_BUILD_SCRIPT)
 
 ## Run ghcid
 ghcid:
