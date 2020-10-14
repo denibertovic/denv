@@ -20,7 +20,6 @@ data DenvArgs = DenvArgs
 data Command
   = Kube KubeProjectName
          (Maybe KubeNamespace)
-         (Maybe TillerNamespace)
   | Pass (Maybe PasswordStorePath)
   | Gcp GoogleCredentialsPath
   | Source (Maybe String) FilePath
@@ -74,13 +73,6 @@ kubeNamespaceOpt =
     (long "kube-namespace" <> short 'n' <> metavar "NAMESPACE" <>
      help "Kube Namespace. Example: kube-system or default.")
 
-tillerNamespaceOpt :: Parser (Maybe String)
-tillerNamespaceOpt =
-  optional $
-  strOption
-    (long "tiller-namespace" <> short 't' <> metavar "NAMESPACE" <>
-     help "Tiller Namespace. Example: kube-system or default.")
-
 kubeProjectOpt :: Parser String
 kubeProjectOpt =
   strOption
@@ -122,7 +114,7 @@ cmdKube = command "kube" infos
   where
     infos = info (options <**> helper) desc
     desc = progDesc "Set kube environment."
-    options = Kube <$> kubeProjectOpt <*> kubeNamespaceOpt <*> tillerNamespaceOpt
+    options = Kube <$> kubeProjectOpt <*> kubeNamespaceOpt
 
 cmdPass :: Mod CommandFields Command
 cmdPass = command "pass" infos

@@ -29,7 +29,7 @@ import Denv.Utils
 import qualified Denv.Aws as AWS
 
 entrypoint :: DenvArgs -> IO ()
-entrypoint (DenvArgs (Kube p n t) debug) = mkKubeEnv p n t
+entrypoint (DenvArgs (Kube p n) debug) = mkKubeEnv p n
 entrypoint (DenvArgs (Gcp p) debug) = mkGcpEnv p
 entrypoint (DenvArgs (Pass p) debug) = mkPassEnv p
 entrypoint (DenvArgs (Source l p) debug) = mkRawEnv l p
@@ -90,24 +90,22 @@ mkGcpEnv p = do
           ]
   writeRc env
 
-mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> Maybe TillerNamespace -> IO ()
-mkKubeEnv p n t = do
+mkKubeEnv :: KubeProjectName -> Maybe KubeNamespace -> IO ()
+mkKubeEnv p n = do
   checkEnv
   exists <- doesFileExist p
   unless exists (die $ "ERROR: Kubeconfig does not exist: " ++ p)
   let p' = takeFileName p
   let n' = fromMaybe "default" n
-  let t' = fromMaybe "kube-system" t
   let env =
         withVarTracking
           Nothing
           [ Set KubeConfig $ T.pack p
           , Set KubeConfigShort $ T.pack p'
           , Set KubectlNamespace $ T.pack n'
-          , Set TillerNamespace $ T.pack t'
           , Set OldPrompt ps1
           , Set Prompt $
-            mkEscapedText $ "k8s|n:$KUBECTL_NAMESPACE|t:$TILLER_NAMESPACE|$KUBECONFIG_SHORT $PS1"
+            mkEscapedText $ "k8s|n:$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1"
           ]
   writeRc env
 

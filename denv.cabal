@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.1.
+-- This file has been generated from package.yaml by hpack version 0.31.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 461d2dc063672d3077a0c276d13ff07af94602f07714cc4723e713a3036ac95d
+-- hash: 7b06a3b27c97d9844e3a33069a4d245e70d412c2a76c0e387500c872b2f45da9
 
 name:           denv
-version:        0.6.0.0
+version:        0.7.0.0
 description:    Please see the README on GitHub at <https://github.com/denibertovic/denv#readme>
 homepage:       https://github.com/denibertovic/denv#readme
 bug-reports:    https://github.com/denibertovic/denv/issues

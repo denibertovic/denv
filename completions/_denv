@@ -70,7 +70,6 @@ __kube() {
     _arguments \
         "(-p --kube-project)"{-p,--kube-project=}"[Kube project]:project:_files" \
         "(-n --kube-namespace)"{-n,--kube-namespace=}"[Kube namespace]:namespace:($__kube_namespaces)" \
-        "(-t --tiller-namespace)"{-t,--tiller-namespace=}"[Tiller namespace]:namespace:($__kube_namespaces)" \
 }
 
 __denv_commands () {
