@@ -9,6 +9,8 @@ A tool to help manage environments. Currently only supports setting
 kubernetes and pass environments but will likely get support for more stuff as
 the Author needs them.
 
+Usage guide and rationale behind this can be found [here](https://denibertovic.com/posts/haskell-showroom-how-to-switch-between-kubernetes-clusters/) and [here](https://denibertovic.com/posts/switching-between-different-aws-accounts/).
+
 ## How to install
 
 * Download a binary from the [releases page](https://github.com/denibertovic/denv/releases)
