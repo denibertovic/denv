@@ -133,9 +133,7 @@ denv source ~/.vault/example
 
 `NOTE`: As with the `terraform` command, this too has been removed in favor of the "raw" `source` command.
 
-## AWS env (Beta)
-
-This feature is still in beta. Please report bugs if you find them.
+## AWS env
 
 ### Requirements
 
