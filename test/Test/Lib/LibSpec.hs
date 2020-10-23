@@ -23,30 +23,26 @@ spec =
     it "Tests kube env" $ do
       withRandomTempFile $ \d f -> do
         setEnv "HOME" d
-        _ <- mkKubeEnv f Nothing Nothing
+        _ <- mkKubeEnv f Nothing
         cont <- TIO.readFile (d </> ".denv")
         let config = "export KUBECONFIG=" <> T.pack f <> ";"
         let short = "export KUBECONFIG_SHORT=foobar;"
         let namespace = "export KUBECTL_NAMESPACE=default;"
-        let tillerNamespace = "export TILLER_NAMESPACE=kube-system;"
         let ls = T.lines cont
         (config `elem` ls) `shouldBe` True
         (namespace `elem` ls) `shouldBe` True
-        (tillerNamespace `elem` ls) `shouldBe` True
         (short `elem` ls) `shouldBe` True
     it "Tests kube env with namespace" $ do
       withRandomTempFile $ \d f -> do
         setEnv "HOME" d
-        _ <- mkKubeEnv f (Just "kube-system") (Just "testing")
+        _ <- mkKubeEnv f (Just "kube-system")
         cont <- TIO.readFile (d </> ".denv")
         let config = "export KUBECONFIG=" <> T.pack f <> ";"
         let short = "export KUBECONFIG_SHORT=foobar;"
         let namespace = "export KUBECTL_NAMESPACE=kube-system;"
-        let tillerNamespace = "export TILLER_NAMESPACE=testing;"
         let ls = T.lines cont
         (config `elem` ls) `shouldBe` True
         (namespace `elem` ls) `shouldBe` True
-        (tillerNamespace `elem` ls) `shouldBe` True
         (short `elem` ls) `shouldBe` True
     it "Tests vault env" $ do
       withTempVaultConfig $ \d f -> do
