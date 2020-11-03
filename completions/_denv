@@ -41,10 +41,9 @@ __fetch () {
 }
 
 __source () {
-    _arguments |
-        "(-l --label)"{-l,--label=}"[Label]" \
-    _alternative \
-        "files:filename:_files" \
+    _arguments \
+        "(-l --label)"{-l,--label=}"[Label]" '::optional label:' \
+        ":path:_files" \
 }
 
 __deactivate () {}
