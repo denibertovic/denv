@@ -14,7 +14,7 @@ Usage guide and rationale behind this can be found [here](https://denibertovic.c
 ## How to install
 
 * Download a binary from the [releases page](https://github.com/denibertovic/denv/releases)
-* Add the below line at the end of your `.bashrc` or `.zshrc` :
+* Add the below line at the end of your `~/.bashrc`, `~/.zshrc` or `~/.config/fish/config.fish` :
 
 For ZSH:
 
@@ -26,6 +26,12 @@ For BASH:
 
 ```bash
 eval "$(denv hook BASH)"
+```
+
+For FISH:
+
+```fish
+eval (denv hook FISH);
 ```
 
 `NOTE`: Make sure to use all caps when choosing the SHELL.

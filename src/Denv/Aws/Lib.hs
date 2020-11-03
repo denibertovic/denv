@@ -357,7 +357,8 @@ mkAwsEnv' p region (AwsEnvAuth k s sesst)=
     , Set AwsDefaultRegion (toText region)
     , Set AwsRegion (toText region)
     , Set OldPrompt ps1
-    , Set Prompt $ mkEscapedText $ "aws|" <> fromAwsProfile p <> " $PS1"
+    , Set DenvPrompt $ mkEscapedText $ "aws|" <> fromAwsProfile p <> " "
+    , Set Prompt $ "$_DENV_PROMPT$PS1"
     ]
 
 execStsRequest :: AWS.AWSRequest a =>

@@ -18,6 +18,7 @@ type GoogleCredentialsPath = String
 data Shell
   = BASH
   | ZSH
+  | FISH
   deriving (Show, Eq, Read)
 
 data GcpVariable
@@ -69,12 +70,14 @@ instance Show PassVariable where
 data SpecialVariable
   = Prompt
   | OldPrompt
+  | DenvPrompt
   | DenvSetVars
   | RawEnvFile
   deriving (Eq)
 
 instance Show SpecialVariable where
   show Prompt = "PS1"
+  show DenvPrompt = "_DENV_PROMPT"
   show OldPrompt = "_OLD_DENV_PS1"
   show DenvSetVars = "_DENV_SET_VARS"
   show RawEnvFile = "RAW_ENV_FILE"

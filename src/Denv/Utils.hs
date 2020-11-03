@@ -110,3 +110,10 @@ promptLine prompt = do
     putStr prompt
     hFlush stdout
     getLine
+
+-- Fish shell uses `set -x key value` and `set -e key` for setting and unsetting
+-- so we have to replace `export` and `unset` accordingly since the .denv file has already
+-- been written. We should probably move this logic up into the creation of the .denv file
+-- rather than doing the tranformation after the fact.
+fishify :: T.Text -> T.Text
+fishify orig = T.replace "=" " " $ T.replace "unset " "set -e -g " $ T.replace "export " "set -x -g " orig

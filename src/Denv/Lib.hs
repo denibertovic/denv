@@ -52,7 +52,8 @@ mkRawEnv mp p = do
           (Just deac)
           [ Set OldPrompt ps1
           , Set RawEnvFile $ T.pack p'
-          , Set Prompt $ mkEscapedText $ prp <> "$RAW_ENV_FILE $PS1"
+          , Set DenvPrompt $ mkEscapedText $ prp <> "$RAW_ENV_FILE "
+          , Set Prompt $ "$_DENV_PROMPT$PS1"
           ]
   writeRcWithPredefined c env
 
@@ -70,7 +71,8 @@ mkPassEnv p = do
           [ Set PasswordStoreDir $ T.pack p'
           , Set PasswordStoreDirShort $ T.pack p''
           , Set OldPrompt ps1
-          , Set Prompt $ mkEscapedText "pass|$PASSWORD_STORE_DIR_SHORT $PS1"
+          , Set DenvPrompt $ mkEscapedText "pass|$PASSWORD_STORE_DIR_SHORT "
+          , Set Prompt $ "$_DENV_PROMPT$PS1"
           ]
   writeRc env
 
@@ -86,7 +88,8 @@ mkGcpEnv p = do
           [ Set GoogleCredentials $ T.pack p
           , Set GoogleCredentialsShort $ T.pack p'
           , Set OldPrompt ps1
-          , Set Prompt $ mkEscapedText "gcp|$GOOGLE_CREDENTIALS_SHORT $PS1"
+          , Set DenvPrompt $ mkEscapedText "gcp|$GOOGLE_CREDENTIALS_SHORT"
+          , Set Prompt $ "$_DENV_PROMPT$PS1"
           ]
   writeRc env
 
@@ -104,8 +107,9 @@ mkKubeEnv p n = do
           , Set KubeConfigShort $ T.pack p'
           , Set KubectlNamespace $ T.pack n'
           , Set OldPrompt ps1
-          , Set Prompt $
-            mkEscapedText $ "k8s|n:$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT $PS1"
+          , Set DenvPrompt $
+            mkEscapedText $ "k8s|n:$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT "
+          , Set Prompt $ "$_DENV_PROMPT$PS1"
           ]
   writeRc env
 
@@ -128,15 +132,19 @@ deactivateEnv = do
 execHook :: Shell -> IO ()
 execHook BASH = putStrLn bashHook
 execHook ZSH = putStrLn zshHook
+execHook FISH = putStrLn fishHook
 
 execExport :: Shell -> IO ()
-execExport _ = do
+execExport shell = do
   h <- getHomeDirectory
   let rc = h </> ".denv"
   exists <- doesFileExist rc
   unless exists exitSuccess
   exports <- TIO.readFile rc
-  putStrLn (T.unpack exports)
+  if shell == FISH then do
+    putStrLn (T.unpack $ fishify exports)
+  else do
+    putStrLn (T.unpack exports)
   removeFile rc
 
 -- This is inspired by [direnv](https://github.com/direnv/direnv) (all credits to the authors).
@@ -166,4 +174,17 @@ bashHook =
     , "if ! [[ \"$PROMPT_COMMAND\" =~ _denv_hook ]]; then"
     , "  PROMPT_COMMAND=\"_denv_hook;$PROMPT_COMMAND\";"
     , "fi"
+    ]
+
+-- The __denv_hook function is inspired by [direnv](https://github.com/direnv/direnv) (all credits to the authors).
+-- LICENCE: https://github.com/direnv/direnv/blob/6712217a50aa6a5944d6fc4a245acc06304effcb/LICENSE
+fishHook :: String
+fishHook =
+  unlines
+    [ "function __denv_hook --on-event fish_postexec;"
+    , "    denv export FISH | source;"
+    , "end;"
+    , "function __trigger_prompt_change --on-event fish_prompt;"
+    , "    echo -n $_DENV_PROMPT;"
+    , "end;"
     ]
