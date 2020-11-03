@@ -16,6 +16,7 @@ import System.FilePath ((</>))
 import Text.Parsec (parse)
 import System.FilePath.Posix (splitPath)
 import System.Directory ( getHomeDirectory )
+import System.Posix.Files (setFileMode, ownerWriteMode, ownerReadMode, unionFileModes)
 import qualified LoadEnv.Parse as LE
 
 import Denv.Types
@@ -72,6 +73,7 @@ writeRc env = do
   h <- getHomeDirectory
   let rc = h </> ".denv"
   TIO.writeFile rc (toEnv env)
+  setFileMode rc $ unionFileModes ownerReadMode ownerWriteMode
 
 writeRcWithPredefined :: T.Text -> [DenvVariable] -> IO ()
 writeRcWithPredefined c env = do
