@@ -32,6 +32,20 @@ spec =
         (config `elem` ls) `shouldBe` True
         (namespace `elem` ls) `shouldBe` True
         (short `elem` ls) `shouldBe` True
+    it "Tests kube env sets denv vars" $ do
+      withRandomTempFile $ \d f -> do
+        setEnv "HOME" d
+        _ <- mkKubeEnv f Nothing
+        cont <- TIO.readFile (d </> ".denv")
+        let prompt = "export PS1=$_DENV_PROMPT$PS1;"
+        let oldPrompt = "export _OLD_DENV_PS1=\"$PS1\";"
+        let denvPrompt = "export _DENV_PROMPT=\"k8s|n:$KUBECTL_NAMESPACE|$KUBECONFIG_SHORT \";"
+        let denvSetVars = "export _DENV_SET_VARS=KUBECONFIG,KUBECONFIG_SHORT,KUBECTL_NAMESPACE,_OLD_DENV_PS1,_DENV_PROMPT,_DENV_SET_VARS;"
+        let ls = T.lines cont
+        (prompt `elem` ls) `shouldBe` True
+        (oldPrompt `elem` ls) `shouldBe` True
+        (denvPrompt `elem` ls) `shouldBe` True
+        (denvSetVars `elem` ls) `shouldBe` True
     it "Tests kube env with namespace" $ do
       withRandomTempFile $ \d f -> do
         setEnv "HOME" d
@@ -50,6 +64,20 @@ spec =
         _ <- mkRawEnv Nothing f
         cont <- TIO.readFile (d </> ".denv")
         (testVaultConfig `isPrefixOf` T.lines cont) `shouldBe` True
+    it "Tests vault env sets denv vars" $ do
+      withTempVaultConfig $ \d f -> do
+        setEnv "HOME" d
+        _ <- mkRawEnv Nothing f
+        cont <- TIO.readFile (d </> ".denv")
+        let prompt = "export PS1=$_DENV_PROMPT$PS1;"
+        let oldPrompt = "export _OLD_DENV_PS1=\"$PS1\";"
+        let denvPrompt = "export _DENV_PROMPT=\"raw|$RAW_ENV_FILE \";"
+        let denvSetVars = "export _DENV_SET_VARS=_OLD_DENV_PS1,RAW_ENV_FILE,_DENV_PROMPT,VAULT_SKIP_VERIFY,VAULT_TOKEN,VAULT_ADDR,_DENV_SET_VARS;"
+        let ls = T.lines cont
+        (prompt `elem` ls) `shouldBe` True
+        (oldPrompt `elem` ls) `shouldBe` True
+        (denvPrompt `elem` ls) `shouldBe` True
+        (denvSetVars `elem` ls) `shouldBe` True
     it "Tests sourcing env file" $ do
       withTempVaultConfig $ \d f -> do
         setEnv "HOME" d
@@ -66,6 +94,20 @@ spec =
               , "export PASSWORD_STORE_DIR_SHORT=" <> (T.pack $ mkNameShort d) <> ";"
               ]
         (ret `isPrefixOf` T.lines cont) `shouldBe` True
+    it "Tests pass env sets denv vars" $ do
+      withRandomTempFile $ \d _ -> do
+        setEnv "HOME" d
+        _ <- mkPassEnv (Just d)
+        cont <- TIO.readFile (d </> ".denv")
+        let prompt = "export PS1=$_DENV_PROMPT$PS1;"
+        let oldPrompt = "export _OLD_DENV_PS1=\"$PS1\";"
+        let denvPrompt = "export _DENV_PROMPT=\"pass|$PASSWORD_STORE_DIR_SHORT \";"
+        let denvSetVars = "export _DENV_SET_VARS=PASSWORD_STORE_DIR,PASSWORD_STORE_DIR_SHORT,_OLD_DENV_PS1,_DENV_PROMPT,_DENV_SET_VARS;"
+        let ls = T.lines cont
+        (prompt `elem` ls) `shouldBe` True
+        (oldPrompt `elem` ls) `shouldBe` True
+        (denvPrompt `elem` ls) `shouldBe` True
+        (denvSetVars `elem` ls) `shouldBe` True
     it "Tests tf env" $ do
       withTempTerraformConfig $ \d f -> do
         setEnv "HOME" d
@@ -73,6 +115,42 @@ spec =
         _ <- mkRawEnv Nothing f
         cont <- TIO.readFile (d </> ".denv")
         (testTerraformConfig `isPrefixOf` T.lines cont) `shouldBe` True
+    it "Tests tf env sets denv vars" $ do
+      withTempTerraformConfig $ \d f -> do
+        setEnv "HOME" d
+        setCurrentDirectory d
+        _ <- mkRawEnv Nothing f
+        cont <- TIO.readFile (d </> ".denv")
+        let prompt = "export PS1=$_DENV_PROMPT$PS1;"
+        let oldPrompt = "export _OLD_DENV_PS1=\"$PS1\";"
+        let denvPrompt = "export _DENV_PROMPT=\"raw|$RAW_ENV_FILE \";"
+        let denvSetVars = "export _DENV_SET_VARS=_OLD_DENV_PS1,RAW_ENV_FILE,_DENV_PROMPT,TF_VAR_foo,CLUSTER_NAME,ENVIRONMENT,_DENV_SET_VARS;"
+        let ls = T.lines cont
+        (prompt `elem` ls) `shouldBe` True
+        (oldPrompt `elem` ls) `shouldBe` True
+        (denvPrompt `elem` ls) `shouldBe` True
+        (denvSetVars `elem` ls) `shouldBe` True
+    it "Tests FISH set transformation" $ do
+      withTempTerraformConfig $ \d f -> do
+        setEnv "HOME" d
+        setCurrentDirectory d
+        _ <- mkRawEnv Nothing f
+        cont <- TIO.readFile (d </> ".denv")
+        let ls = T.lines $ fishify cont
+        let f1 = "set -x -g CLUSTER_NAME foo"
+        let f2 = "set -x -g ENVIRONMENT prod"
+        let f3 = "set -x -g TF_VAR_foo bar"
+        let prompt = "set -x -g PS1 $_DENV_PROMPT$PS1;"
+        let oldPrompt = "set -x -g _OLD_DENV_PS1 \"$PS1\";"
+        let denvPrompt = "set -x -g _DENV_PROMPT \"raw|$RAW_ENV_FILE \";"
+        let denvSetVars = "set -x -g _DENV_SET_VARS _OLD_DENV_PS1,RAW_ENV_FILE,_DENV_PROMPT,TF_VAR_foo,CLUSTER_NAME,ENVIRONMENT,_DENV_SET_VARS;"
+        (f1 `elem` ls) `shouldBe` True
+        (f2 `elem` ls) `shouldBe` True
+        (f3 `elem` ls) `shouldBe` True
+        (prompt `elem` ls) `shouldBe` True
+        (oldPrompt `elem` ls) `shouldBe` True
+        (denvPrompt `elem` ls) `shouldBe` True
+        (denvSetVars `elem` ls) `shouldBe` True
     it "Tests deactivate env" $ do
       withTempTerraformConfig $ \d _ -> do
         setEnv "HOME" d
@@ -81,6 +159,14 @@ spec =
         cont <- TIO.readFile (d </> ".denv")
         let expected = "export PS1=\"$_OLD_DENV_PS1\";\nunset \"FOO\";\nunset \"BAR\";\nunset \"_DENV_SET_VARS\";\n"
         (expected == cont) `shouldBe` True
+    it "Tests deactivate env with FISH" $ do
+      withTempTerraformConfig $ \d _ -> do
+        setEnv "HOME" d
+        setEnv "_DENV_SET_VARS" "FOO,BAR,_DENV_SET_VARS"
+        _ <- deactivateEnv
+        cont <- TIO.readFile (d </> ".denv")
+        let expected = "set -x -g PS1 \"$_OLD_DENV_PS1\";\nset -e -g \"FOO\";\nset -e -g \"BAR\";\nset -e -g \"_DENV_SET_VARS\";\n"
+        (expected == (fishify cont)) `shouldBe` True
     it "Tests tracking vars works" $ do
       let env = [ Set OldPrompt ps1
                 , Set KubeConfig "foobar"
@@ -112,7 +198,7 @@ testVaultConfig =
 testTerraformConfig :: [T.Text]
 testTerraformConfig =
   [ "export ENVIRONMENT=prod"
-  , "export CLUSTER_NAME=foor"
+  , "export CLUSTER_NAME=foo"
   , "export TF_VAR_foo=bar"
   ]
 
