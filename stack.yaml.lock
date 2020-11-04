@@ -5,19 +5,37 @@
 
 packages:
 - completed:
-    hackage: amazonka-1.6.1@sha256:d863557379350ed6bbb91187abeb8c349a654f60b140d138710486f58ae7c476,3536
+    subdir: amazonka
+    cabal-file:
+      size: 3457
+      sha256: 7ac360751e371ba853f56d357e861c5fe103b1da17f045ac47fd285c164a37f7
+    name: amazonka
+    version: 1.6.1
+    git: https://github.com/brendanhay/amazonka.git
     pantry-tree:
-      size: 992
-      sha256: 55747f9b56063ea1be73a962e1ce44528b9856e119e2d9f1238397b3112b6e70
+      size: 1038
+      sha256: 59c7840fe6c9609d1d5022149010e72db5778e4978b9384b6dee8a4a207c96b3
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
   original:
-    hackage: amazonka-1.6.1@sha256:d863557379350ed6bbb91187abeb8c349a654f60b140d138710486f58ae7c476,3536
+    subdir: amazonka
+    git: https://github.com/brendanhay/amazonka.git
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
 - completed:
-    hackage: amazonka-core-1.6.1@sha256:9bc59ce403c6eeba3b3eaf3f10e5f0b6a33b6edbbf8f6de0dd6f4c67b86fa698,5135
+    subdir: core
+    cabal-file:
+      size: 4957
+      sha256: 8ff9614130407588370e12e905f3539a733b76f6d9397ed3522ce54fc154d918
+    name: amazonka-core
+    version: 1.6.1
+    git: https://github.com/brendanhay/amazonka.git
     pantry-tree:
-      size: 3438
-      sha256: c13e643176308771491ec0e06390e269047bb1b28be4535992842f7426a95eb4
+      size: 3484
+      sha256: dbd45ae65d2df195ac670bed949d98ab3764bf5c691594c861337d8228ccc9fb
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
   original:
-    hackage: amazonka-core-1.6.1@sha256:9bc59ce403c6eeba3b3eaf3f10e5f0b6a33b6edbbf8f6de0dd6f4c67b86fa698,5135
+    subdir: core
+    git: https://github.com/brendanhay/amazonka.git
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
 - completed:
     hackage: amazonka-sts-1.6.1@sha256:224759e5e45234064864a66b504c9c300028c50939184f533c004dea351156b1,3190
     pantry-tree:
