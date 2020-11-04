@@ -1,0 +1,126 @@
+name: "CI"
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - '*'
+    tags:
+      - 'v*.*.*.*' # Push events to matching v1.2.3.4
+jobs:
+  stack:
+    name: Build using stack
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        stack: [2.7.1]
+        include:
+        - os: macos-latest
+          OS_NAME: macos
+          STACK_OS_NAME: osx
+          TARCMD: gtar
+        - os: ubuntu-latest
+          STACK_OS_NAME: linux
+          OS_NAME: linux
+          TARCMD: tar
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2.3.1
+
+    - name: Cache global ~/.stack
+      id:   stack-global
+      uses: actions/cache@v2
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-global
+
+    - name: Cache stack-installed programs in ~/.local/bin
+      id:   stack-programs
+      uses: actions/cache@v2
+      with:
+        path: ~/.local/bin
+        key: ${{ runner.os }}-stack-programs-${{ hashFiles('stack.yaml.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-programs
+
+    - name: Cache .stack-work
+      uses: actions/cache@v2
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work
+
+    - name: Install gnu-tar (only on MacOS)
+      run: brew install gnu-tar
+      if: matrix.os == 'macos-latest'
+
+    - name: Install stack
+      run: |
+        mkdir -p ~/.local/bin
+        export PATH=~/.local/bin:$PATH
+        if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://github.com/commercialhaskell/stack/releases/download/v${{ matrix.stack }}/stack-${{ matrix.stack }}-${{ matrix.STACK_OS_NAME }}-x86_64.tar.gz | ${{ matrix.TARCMD }} xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+        stack --version
+
+    - name: set SHORT_SHA
+      run: echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+    - name: set VERSION
+      run: echo "VERSION=$(make version)" >> $GITHUB_ENV
+
+    - name: Stack setup
+      run: stack --no-terminal setup --no-reinstall > /dev/null
+
+    - name: Stack test
+      run: stack --no-terminal test
+
+    - name: Stack install
+      run: stack --no-terminal install
+
+    # NOTE: we're using OS_NAME defined in the matrix instead of "runner.os" because I want it to be
+    # all lowercase but runner.os prints macOS and Linux.
+    # I tried this but it didn't work on macOS
+    # - name: lowercase the runner OS name
+    # run: echo ::set-env name=RUNNER_OS::${${{ runner.os }},,}
+    # got error: name=RUNNER_OS::${macOS,,}: bad substitution
+    - name: Create release artifact
+      if: github.ref == 'refs/heads/master'
+      run: |
+        mkdir release
+        cd release
+        cp ~/.local/bin/denv .
+        ${{ matrix.TARCMD }} --xform=s:'\./\?':: -czf ../denv-${{ env.VERSION }}-${{ matrix.OS_NAME }}-x86_64.tar.gz ./
+
+    - uses: actions/upload-artifact@v2
+      if: github.ref == 'refs/heads/master'
+      with:
+        name: build-artifact
+        path: denv-${{ env.VERSION }}-${{ matrix.OS_NAME }}-x86_64.tar.gz
+        if-no-files-found: error
+
+  release:
+    needs: stack
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: build-artifact
+
+      - name: Create release and upload artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            WARNING - This is an automated description set by github actions. Please update!
+          files: denv-*-*-x86_64.tar.gz

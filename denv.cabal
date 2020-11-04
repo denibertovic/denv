@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5de4d61f075d6b58ff91484714919dc4daea1a3eeff5e3b80c2e06977283cf49
+-- hash: 0ba67fa7e6aaca6bdbec395a8919a84c7ca35ce287035361cf9369330e719096
 
 name:           denv
 version:        0.7.0.1
@@ -38,7 +38,8 @@ library
       Paths_denv
   hs-source-dirs:
       src
-  default-extensions: NoImplicitPrelude
+  default-extensions:
+      NoImplicitPrelude
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
   build-depends:
       aeson
@@ -71,7 +72,8 @@ executable denv
       Paths_denv
   hs-source-dirs:
       app
-  default-extensions: NoImplicitPrelude
+  default-extensions:
+      NoImplicitPrelude
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
@@ -107,7 +109,8 @@ test-suite hspec
       Paths_denv
   hs-source-dirs:
       test
-  default-extensions: NoImplicitPrelude
+  default-extensions:
+      NoImplicitPrelude
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       aeson
