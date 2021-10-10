@@ -1,10 +1,5 @@
 # (The) env
 
-| Master |
-| -------|
-| [![master](https://travis-ci.org/denibertovic/denv.svg?branch=master)](https://travis-ci.org/denibertovic/denv) |
-
-
 A tool to help manage environments. Currently only supports setting
 kubernetes and pass environments but will likely get support for more stuff as
 the Author needs them.
