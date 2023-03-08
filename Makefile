@@ -1,13 +1,17 @@
-.PHONY: build repl test release help
+.PHONY: build repl test release help nix-build
 
 .DEFAULT_GOAL = help
 
 VERSION ?= $(shell grep "^version:" denv.cabal | cut -d " " -f9)
-STATIC_BUILD_SCRIPT ?= $(shell nix-build --no-link -A fullBuildScript)
+STATIC_BUILD_SCRIPT ?= $(shell nix-build --no-link -A fullBuildScript static.nix)
 
 ## Run build
 build:
 	@stack build
+
+## Run nix-build
+nix-build:
+	@nix-build -E 'with import <nixpkgs> { }; callPackage ./default.nix { }' -A denv.components.exes.denv
 
 ## Run repl
 repl:
@@ -23,7 +27,7 @@ release:
 
 ## Build static binary with nix
 static:
-	@$(STATIC_BUILD_SCRIPT)
+	@$(STATIC_BUILD_SCRIPT) static.nix
 
 ## Run ghcid
 ghcid:

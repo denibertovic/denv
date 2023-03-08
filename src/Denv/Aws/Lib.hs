@@ -5,7 +5,7 @@
 module Denv.Aws.Lib where
 
 import Prelude (print)
-import RIO hiding ((&), (^.))
+import RIO
 import RIO.Process
 import Data.List (intercalate)
 
@@ -26,7 +26,6 @@ import Data.Time
   )
 import Data.Time.Clock
 import Data.Time.Clock.System (systemSeconds, utcToSystemTime)
-import Lens.Family
 import qualified Network.AWS as AWS
 import Network.AWS.Auth ()
 import Network.AWS.Data (fromText, toText)

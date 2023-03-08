@@ -5,47 +5,41 @@
 
 packages:
 - completed:
-    subdir: amazonka
-    cabal-file:
-      size: 3457
-      sha256: 7ac360751e371ba853f56d357e861c5fe103b1da17f045ac47fd285c164a37f7
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
+    git: https://github.com/brendanhay/amazonka.git
     name: amazonka
-    version: 1.6.1
-    git: https://github.com/brendanhay/amazonka.git
     pantry-tree:
-      size: 1038
       sha256: 59c7840fe6c9609d1d5022149010e72db5778e4978b9384b6dee8a4a207c96b3
-    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
-  original:
+      size: 1038
     subdir: amazonka
-    git: https://github.com/brendanhay/amazonka.git
-    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
-- completed:
-    subdir: core
-    cabal-file:
-      size: 4957
-      sha256: 8ff9614130407588370e12e905f3539a733b76f6d9397ed3522ce54fc154d918
-    name: amazonka-core
     version: 1.6.1
-    git: https://github.com/brendanhay/amazonka.git
-    pantry-tree:
-      size: 3484
-      sha256: dbd45ae65d2df195ac670bed949d98ab3764bf5c691594c861337d8228ccc9fb
-    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
   original:
-    subdir: core
-    git: https://github.com/brendanhay/amazonka.git
     commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
+    git: https://github.com/brendanhay/amazonka.git
+    subdir: amazonka
+- completed:
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
+    git: https://github.com/brendanhay/amazonka.git
+    name: amazonka-core
+    pantry-tree:
+      sha256: dbd45ae65d2df195ac670bed949d98ab3764bf5c691594c861337d8228ccc9fb
+      size: 3484
+    subdir: core
+    version: 1.6.1
+  original:
+    commit: 020bc7bde47bb235e448c76088dc44d6cec13e9b
+    git: https://github.com/brendanhay/amazonka.git
+    subdir: core
 - completed:
     hackage: amazonka-sts-1.6.1@sha256:224759e5e45234064864a66b504c9c300028c50939184f533c004dea351156b1,3190
     pantry-tree:
-      size: 2470
       sha256: a7010e9bd69288ca0dfda026ecaa05aff9df162f06077ac3e09b2922ee6d812b
+      size: 2470
   original:
     hackage: amazonka-sts-1.6.1@sha256:224759e5e45234064864a66b504c9c300028c50939184f533c004dea351156b1,3190
 snapshots:
 - completed:
-    size: 509471
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/12/26.yaml
-    sha256: 95f014df58d0679b1c4a2b7bf2b652b61da8d30de5f571abb0d59015ef678646
-  original: lts-12.26
+    sha256: 428ec8d5ce932190d3cbe266b9eb3c175cd81e984babf876b64019e2cbe4ea68
+    size: 590100
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/28.yaml
+  original: lts-18.28
