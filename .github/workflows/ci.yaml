@@ -28,11 +28,11 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.3.1
+      uses: actions/checkout@v4
 
     - name: Cache global ~/.stack
       id:   stack-global
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.stack
         key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml.lock') }}
@@ -41,7 +41,7 @@ jobs:
 
     - name: Cache stack-installed programs in ~/.local/bin
       id:   stack-programs
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-stack-programs-${{ hashFiles('stack.yaml.lock') }}
@@ -49,7 +49,7 @@ jobs:
              ${{ runner.os }}-stack-programs
 
     - name: Cache .stack-work
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: .stack-work
         key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml.lock') }}
@@ -89,17 +89,17 @@ jobs:
     # run: echo ::set-env name=RUNNER_OS::${${{ runner.os }},,}
     # got error: name=RUNNER_OS::${macOS,,}: bad substitution
     - name: Create release artifact
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
       run: |
         mkdir release
         cd release
         cp ~/.local/bin/denv .
         ${{ matrix.TARCMD }} --xform=s:'\./\?':: -czf ../denv-${{ env.VERSION }}-${{ matrix.OS_NAME }}-x86_64.tar.gz ./
 
-    - uses: actions/upload-artifact@v2
-      if: github.ref == 'refs/heads/master'
+    - uses: actions/upload-artifact@v4
+      if: github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')
       with:
-        name: build-artifact
+        name: build-artifact-${{ matrix.OS_NAME }}
         path: denv-${{ env.VERSION }}-${{ matrix.OS_NAME }}-x86_64.tar.gz
         if-no-files-found: error
 
@@ -108,12 +108,13 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v4
         with:
-          name: build-artifact
+          pattern: build-artifact-*
+          merge-multiple: true
 
       - name: Create release and upload artifact
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: Release ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
