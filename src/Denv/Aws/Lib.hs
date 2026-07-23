@@ -305,11 +305,10 @@ useRawWithRole rawAwsEnv region lgr p sourceProfile duration roleArn = do
   Just <$> assumeRoleWith rawAwsEnv region lgr p Nothing duration roleArn
 
 
-nop :: (HasLogFunc env, HasProcessContext env) => RIO env (Maybe AwsEnvAuth)
-nop = return Nothing
-
-nop1 :: (HasLogFunc env, HasProcessContext env) => a -> RIO env (Maybe AwsEnvAuth)
-nop1 _ = return Nothing
+-- Lift an optional value into MaybeT: a missing input short-circuits the branch
+-- so the <|> chain falls through to the next credential source.
+hoistMaybe :: Applicative m => Maybe a -> MaybeT m a
+hoistMaybe = MaybeT . pure
 
 
 mkAwsEnv :: AwsProfile -> Maybe AwsRoleSessionDuration -> [String] -> Bool -> IO ()
@@ -341,13 +340,15 @@ mkAwsEnv p duration cmd debug = do
         --   (\err -> die $ "ERROR Failed to parse credentials: " <> err)
         --   AWS.newEnv
         --   auth
-      env <- runMaybeT $
-        MaybeT (runRIO awsEnv $ maybe nop (getFromRoleCache p duration') roleArn) <|>
-        MaybeT (runRIO awsEnv $ maybe nop (maybe nop1 (getSTSWithRole awsenv region' lgr p sourceProfile duration') mfaSerial) roleArn) <|>
-        MaybeT (runRIO awsEnv $ maybe nop (getFromSessionCache p sourceProfile) mfaSerial) <|>
-        MaybeT (runRIO awsEnv $ maybe nop (getSTS awsenv region' lgr p sourceProfile) mfaSerial) <|>
-        MaybeT (runRIO awsEnv $ maybe nop (useRawWithRole awsenv region' lgr p sourceProfile duration') roleArn) <|>
-        MaybeT (runRIO awsEnv $ useRaw key' secret')
+      env <- runRIO awsEnv $ runMaybeT $
+            (hoistMaybe roleArn   >>= MaybeT . getFromRoleCache p duration')
+        <|> (do arn <- hoistMaybe roleArn
+                mfa <- hoistMaybe mfaSerial
+                MaybeT $ getSTSWithRole awsenv region' lgr p sourceProfile duration' mfa arn)
+        <|> (hoistMaybe mfaSerial >>= MaybeT . getFromSessionCache p sourceProfile)
+        <|> (hoistMaybe mfaSerial >>= MaybeT . getSTS awsenv region' lgr p sourceProfile)
+        <|> (hoistMaybe roleArn   >>= MaybeT . useRawWithRole awsenv region' lgr p sourceProfile duration')
+        <|>  MaybeT (useRaw key' secret')
       case env of
         Nothing -> die "Something went horribly wrong." -- TODO: Don't error like this
         Just (AwsEnvAuth k s sesst) -> do
