@@ -95,8 +95,8 @@ parseSessionCacheFile p sourceProfile (MfaSerial mfa') = do
 -- The temporary security credentials created by AssumeRole can be used to make API calls to any
 -- AWS service with the following exception: you cannot call the STS service's GetFederationToken or
 -- GetSessionToken APIs.
-parseRoleCacheFile :: AwsProfile -> RoleArn -> IO (Either AwsEnvCacheError AwsEnvRoleCache)
-parseRoleCacheFile p (RoleArn arn') = do
+parseRoleCacheFile :: AwsProfile -> Natural -> RoleArn -> IO (Either AwsEnvCacheError AwsEnvRoleCache)
+parseRoleCacheFile p duration (RoleArn arn') = do
     fileName <- mkAwsRoleFileName p (RoleArn arn')
     exists <- doesFileExist fileName
     if (not exists) then (return $ Left AwsEnvCacheNotFound) else do
@@ -106,7 +106,7 @@ parseRoleCacheFile p (RoleArn arn') = do
         Left _ -> return $ Left AwsEnvCacheParseError
         Right r' -> do
           let exp = fromJust $ roleCacheExpiration r' -- TODO: fix this
-          isExpired <- isRoleCacheExpired exp
+          isExpired <- isRoleCacheExpired exp duration
           if isExpired then return $ Left AwsEnvCacheExpired
           else return $ Right r'
 
@@ -123,6 +123,21 @@ defaultRoleDurationSeconds :: Integer
 defaultRoleDurationSeconds = 3600
 defaultRoleRefreshFactor = 35
 
+durationToSeconds :: AwsRoleSessionDuration -> Integer
+durationToSeconds d = case d of
+  Duration_1h -> 3600
+  Duration_2h -> 7200
+  Duration_3h -> 10800
+  Duration_4h -> 14400
+  Duration_5h -> 18000
+  Duration_6h -> 21600
+  Duration_7h -> 25200
+  Duration_8h -> 28800
+  Duration_9h -> 32400
+  Duration_10h -> 36000
+  Duration_11h -> 39600
+  Duration_12h -> 43200
+
 -- Default session_refresh_factor is 65
 isSessionCacheExpired exp = do
   now <- getCurrentTime
@@ -131,10 +146,10 @@ isSessionCacheExpired exp = do
   if (now' >= exp') then return True else return False
 
 -- Default role_refresh_factor is 35
-isRoleCacheExpired exp = do
+isRoleCacheExpired exp duration = do
   now <- getCurrentTime
   let now' = systemSeconds $ utcToSystemTime now
-  let exp' = (systemSeconds $ utcToSystemTime exp) - ((fromIntegral defaultRoleDurationSeconds) * defaultRoleRefreshFactor `div` 100)
+  let exp' = (systemSeconds $ utcToSystemTime exp) - fromIntegral (duration * defaultRoleRefreshFactor `div` 100)
   if (now' >= exp') then return True else return False
 
 -- Look for key in profile first and then in source profile if it exists
@@ -190,19 +205,18 @@ getSessionName = do
     T.pack $
     formatTime defaultTimeLocale "%Y%m%d-%H%M%S" $ utcToLocalTime tz now
 
-getFromRoleCache :: (HasLogFunc env, HasProcessContext env) => AwsProfile -> RoleArn -> RIO env (Maybe AwsEnvAuth)
-getFromRoleCache p r = do
-  r <- liftIO $ parseRoleCacheFile p r
+getFromRoleCache :: (HasLogFunc env, HasProcessContext env) => AwsProfile -> Natural -> RoleArn -> RIO env (Maybe AwsEnvAuth)
+getFromRoleCache p duration r = do
+  -- parsing the file does the expiration check
+  -- TODO: separate the expiration check into a separate function to
+  -- make it more clear
+  r <- liftIO $ parseRoleCacheFile p duration r
   case r of
     Left err -> do
       return Nothing
     Right r' -> do
-      let exp = fromJust $ roleCacheExpiration r' -- TODO: fix this
-      isExpired <- liftIO $ isRoleCacheExpired exp
-      if isExpired then return Nothing
-      else do
-        logDebug "Using role cache..."
-        return $ Just $ AwsEnvAuth (roleCacheAccessKeyId r') (roleCacheSecretAccessKey r') (roleCacheSessionToken r')
+      logDebug "Using role cache..."
+      return $ Just $ AwsEnvAuth (roleCacheAccessKeyId r') (roleCacheSecretAccessKey r') (roleCacheSessionToken r')
 
 getFromSessionCache :: (HasLogFunc env, HasProcessContext env) => AwsProfile -> Maybe AwsSourceProfile -> MfaSerial -> RIO env (Maybe AwsEnvAuth)
 getFromSessionCache p sp mfa = do
@@ -229,31 +243,51 @@ getSTS awsenv region lgr p sourceProfile mfa = do
               (ret ^. AWS.sessionToken)
   return $ Just auth
 
+-- Assume a role using the given AWS env, caching and returning the resulting
+-- credentials. When an MFA serial is supplied the user is prompted for a token
+-- code -- this is required when assuming a role directly with long-term IAM
+-- credentials. Callers that already hold MFA-backed session credentials pass
+-- Nothing, since those credentials already satisfy the MFA requirement.
+assumeRoleWith :: (HasLogFunc env, HasProcessContext env) => AWS.Env -> AWS.Region -> AWS.Logger -> AwsProfile -> Maybe MfaSerial -> Natural -> RoleArn -> RIO env AwsEnvAuth
+assumeRoleWith awsenv region lgr p mfa duration (RoleArn arn) = do
+  sessionName <- liftIO getSessionName
+  let ar = STS.assumeRole arn sessionName & STS.arDurationSeconds .~ Just duration
+  ar' <- liftIO $ maybe (return ar) (\m -> mkStsAssumeRoleRequest m ar) mfa
+  (creds, ars) <- liftIO $ parseAssumeRoleAuthEnvOrDie =<< execStsRequest awsenv lgr region ar'
+  cacheFileName <- liftIO $ mkAwsRoleFileName p (RoleArn arn)
+  liftIO $ writeRoleCache cacheFileName (toRoleCache creds ars)
+  return $ AwsEnvAuth
+             (creds ^. AWS.accessKeyId)
+             (creds ^. AWS.secretAccessKey)
+             (creds ^. AWS.sessionToken)
+
 -- Use Session Credentials to make an AssumeRole call
 -- Only use "Raw" (user) credentials for getting the STS credentials and then use those
 -- to assume the role
-getSTSWithRole :: (HasLogFunc env, HasProcessContext env) => AWS.Env -> AWS.Region -> AWS.Logger -> AwsProfile -> Maybe AwsSourceProfile -> MfaSerial -> RoleArn -> RIO env (Maybe AwsEnvAuth)
-getSTSWithRole rawAwsEnv region lgr p sourceProfile mfa (RoleArn arn) = do
-  logDebug "Getting STS with role assume..."
-  env <- runMaybeT $
-      MaybeT (getFromSessionCache p sourceProfile mfa) <|>
-      MaybeT (getSTS rawAwsEnv region lgr p sourceProfile mfa)
-  sessionName <- liftIO $ getSessionName
+getSTSWithRole :: (HasLogFunc env, HasProcessContext env) => AWS.Env -> AWS.Region -> AWS.Logger -> AwsProfile -> Maybe AwsSourceProfile -> Natural -> MfaSerial -> RoleArn -> RIO env (Maybe AwsEnvAuth)
+getSTSWithRole rawAwsEnv region lgr p sourceProfile duration mfa roleArn = do
+  env <- if duration <= (fromIntegral $ durationToSeconds Duration_1h) then do
+    logDebug "Getting STS with role assume..."
+    runMaybeT $
+        MaybeT (getFromSessionCache p sourceProfile mfa) <|>
+        MaybeT (getSTS rawAwsEnv region lgr p sourceProfile mfa)
+  else do
+    logDebug "Duration is longer than 1h. Skipping GetSessionToken API."
+    return Nothing
+
   case env of
-    Nothing -> liftIO $ error "Failed to get STS Credentials"
+    -- No session token available (either skipped for a >1h duration or the
+    -- GetSessionToken call failed): assume the role directly with the long-term
+    -- credentials, which requires prompting for an MFA token code.
+    Nothing -> do
+      logDebug "Using RAW creds with role assume..."
+      Just <$> assumeRoleWith rawAwsEnv region lgr p (Just mfa) duration roleArn
+    -- We already hold MFA-backed session credentials; chain off them to assume
+    -- the role. AWS caps chained-role sessions at 1h, so no extra MFA prompt.
     Just (AwsEnvAuth k s sesst) -> do
-      let auth = AWS.FromSession k s (fromJust sesst) -- TODO: fix this
-      awsenv <- liftIO $ AWS.newEnv auth
-      -- TODO: set duration
-      let arn' = STS.assumeRole arn sessionName
-      (creds, ars) <- liftIO $ parseAssumeRoleAuthEnvOrDie =<< execStsRequest awsenv lgr region =<< (mkStsAssumeRoleRequest mfa arn')
-      cacheFileName <- liftIO $ mkAwsRoleFileName p (RoleArn arn)
-      liftIO $ writeRoleCache cacheFileName (toRoleCache creds ars)
-      let auth = AwsEnvAuth
-                  (creds ^. AWS.accessKeyId)
-                  (creds ^. AWS.secretAccessKey)
-                  (creds ^. AWS.sessionToken)
-      return $ Just auth
+      logDebug "Using session creds with role assume..."
+      awsenv <- liftIO $ AWS.newEnv (AWS.FromSession k s (fromJust sesst)) -- TODO: fix this
+      Just <$> assumeRoleWith awsenv region lgr p Nothing duration roleArn
 
 
 -- No CACHE, just use raw creds we already have
@@ -265,20 +299,10 @@ useRaw k s = do
 -- Uses raw creds we aleady have but still we assume a role
 -- Important: You cannot call AssumeRole by using AWS root account credentials;
 -- access is denied. You must use credentials for an IAM user or an IAM role to call AssumeRole .
-useRawWithRole :: (HasLogFunc env, HasProcessContext env) => AWS.Env -> AWS.Region -> AWS.Logger ->  AwsProfile -> Maybe AwsSourceProfile -> RoleArn -> RIO env (Maybe AwsEnvAuth)
-useRawWithRole rawAwsEnv region lgr p sourceProfile (RoleArn arn) = do
+useRawWithRole :: (HasLogFunc env, HasProcessContext env) => AWS.Env -> AWS.Region -> AWS.Logger ->  AwsProfile -> Maybe AwsSourceProfile -> Natural -> RoleArn -> RIO env (Maybe AwsEnvAuth)
+useRawWithRole rawAwsEnv region lgr p sourceProfile duration roleArn = do
   logDebug "Using raw credentials to assume role..."
-  sessionName <- liftIO getSessionName
-  -- TODO: set duration
-  let arn' = STS.assumeRole arn sessionName
-  (creds, ars) <- liftIO $ parseAssumeRoleAuthEnvOrDie =<< execStsRequest rawAwsEnv lgr region arn'
-  cacheFileName <- liftIO $ mkAwsRoleFileName p (RoleArn arn)
-  liftIO $ writeRoleCache cacheFileName (toRoleCache creds ars)
-  let auth = AwsEnvAuth
-              (creds ^. AWS.accessKeyId)
-              (creds ^. AWS.secretAccessKey)
-              (creds ^. AWS.sessionToken)
-  return $ Just auth
+  Just <$> assumeRoleWith rawAwsEnv region lgr p Nothing duration roleArn
 
 
 nop :: (HasLogFunc env, HasProcessContext env) => RIO env (Maybe AwsEnvAuth)
@@ -288,8 +312,8 @@ nop1 :: (HasLogFunc env, HasProcessContext env) => a -> RIO env (Maybe AwsEnvAut
 nop1 _ = return Nothing
 
 
-mkAwsEnv :: AwsProfile -> [String] -> Bool -> IO ()
-mkAwsEnv p cmd debug = do
+mkAwsEnv :: AwsProfile -> Maybe AwsRoleSessionDuration -> [String] -> Bool -> IO ()
+mkAwsEnv p duration cmd debug = do
     when (null cmd) checkEnv
     lo <- logOptionsHandle stderr debug
     pc <- mkDefaultProcessContext
@@ -309,6 +333,7 @@ mkAwsEnv p cmd debug = do
       let secret' = fromJust secret
       lgr <- AWS.newLogger AWS.Info stdout
       let auth = AWS.FromKeys key' secret'
+      let duration' = maybe (fromIntegral defaultRoleDurationSeconds) (\d -> fromIntegral $ durationToSeconds d) duration
       awsenv <- AWS.newEnv auth
       let region' :: AWS.Region =
             either (const AWS.NorthVirginia) id $ fromText =<< region
@@ -317,11 +342,11 @@ mkAwsEnv p cmd debug = do
         --   AWS.newEnv
         --   auth
       env <- runMaybeT $
-        MaybeT (runRIO awsEnv $ maybe nop (getFromRoleCache p) roleArn) <|>
-        MaybeT (runRIO awsEnv $ maybe nop (maybe nop1 (getSTSWithRole awsenv region' lgr p sourceProfile) mfaSerial) roleArn) <|>
+        MaybeT (runRIO awsEnv $ maybe nop (getFromRoleCache p duration') roleArn) <|>
+        MaybeT (runRIO awsEnv $ maybe nop (maybe nop1 (getSTSWithRole awsenv region' lgr p sourceProfile duration') mfaSerial) roleArn) <|>
         MaybeT (runRIO awsEnv $ maybe nop (getFromSessionCache p sourceProfile) mfaSerial) <|>
         MaybeT (runRIO awsEnv $ maybe nop (getSTS awsenv region' lgr p sourceProfile) mfaSerial) <|>
-        MaybeT (runRIO awsEnv $ maybe nop (useRawWithRole awsenv region' lgr p sourceProfile) roleArn) <|>
+        MaybeT (runRIO awsEnv $ maybe nop (useRawWithRole awsenv region' lgr p sourceProfile duration') roleArn) <|>
         MaybeT (runRIO awsEnv $ useRaw key' secret')
       case env of
         Nothing -> die "Something went horribly wrong." -- TODO: Don't error like this
@@ -405,15 +430,14 @@ mkStsSessionTokenRequest (MfaSerial mfaSerial) st = do
 -- requesting the role credentials
 mkStsAssumeRoleRequest :: MfaSerial -> STS.AssumeRole -> IO STS.AssumeRole
 mkStsAssumeRoleRequest (MfaSerial mfaSerial) ar = do
-  return ar
-  -- req <- do
-  --       tokenCode <-
-  --         promptLine $
-  --         "Enter MFA code for " <> (T.unpack $ ar ^. STS.arRoleARN) <> ": "
-  --       return $
-  --         ar & STS.arTokenCode .~ (Just $ T.pack tokenCode) &
-  --         STS.arSerialNumber .~ (Just mfaSerial)
-  -- return req
+  req <- do
+        tokenCode <-
+          promptLine $
+          "Enter MFA code for device " <> show mfaSerial <> ": "
+        return $
+          ar & STS.arTokenCode .~ (Just $ T.pack tokenCode) &
+          STS.arSerialNumber .~ (Just mfaSerial)
+  return req
 
 writeRoleCache :: FilePath -> AwsEnvRoleCache -> IO ()
 writeRoleCache fp cache = do

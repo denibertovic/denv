@@ -32,6 +32,20 @@ newtype AwsProfile =
   AwsProfile T.Text
   deriving (Eq, Show)
 
+data AwsRoleSessionDuration = Duration_1h
+                        | Duration_2h
+                        | Duration_3h
+                        | Duration_4h
+                        | Duration_5h
+                        | Duration_6h
+                        | Duration_7h
+                        | Duration_8h
+                        | Duration_9h
+                        | Duration_10h
+                        | Duration_11h
+                        | Duration_12h
+                        deriving (Eq, Show)
+
 instance FromJSON AwsProfile where
   parseJSON (JSON.String s) = return $ AwsProfile s
   parseJSON _ = fail "Error parsing profile"

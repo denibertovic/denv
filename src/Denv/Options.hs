@@ -23,7 +23,7 @@ data Command
   | Pass (Maybe PasswordStorePath)
   | Gcp GoogleCredentialsPath
   | Source (Maybe String) FilePath
-  | Aws AwsProfile [String]
+  | Aws AwsProfile (Maybe AwsRoleSessionDuration) [String]
   | Deactivate
   | Hook Shell
   | Export Shell
@@ -35,6 +35,22 @@ environ r k env = maybe idm value $ r =<< lookup k env
 
 readAwsProfile :: String -> Maybe AwsProfile
 readAwsProfile s = Just $ AwsProfile $ T.pack s
+
+readAwsRoleSessionDuration :: String -> Maybe AwsRoleSessionDuration
+readAwsRoleSessionDuration s = case s of
+  "1h" -> return Duration_1h
+  "2h" -> return Duration_2h
+  "3h" -> return Duration_3h
+  "4h" -> return Duration_4h
+  "5h" -> return Duration_5h
+  "6h" -> return Duration_6h
+  "7h" -> return Duration_7h
+  "8h" -> return Duration_8h
+  "9h" -> return Duration_9h
+  "10h" -> return Duration_10h
+  "11h" -> return Duration_11h
+  "12h" -> return Duration_12h
+  _ -> Nothing
 
 debugSwitch :: Parser Bool
 debugSwitch = switch (long "debug" <> help "Debug mode. Verbose output.")
@@ -94,6 +110,12 @@ awsProfileOpt env =
     (long "profile" <> short 'p' <> metavar "PROFILE" <> environ readAwsProfile "AWS_DEFAULT_PROFILE" env <>
      help "Aws profile to use. Must be defined in ~/.aws/config.")
 
+awsRoleSessionDurationOpt :: Parser (Maybe AwsRoleSessionDuration)
+awsRoleSessionDurationOpt =
+  optional $ option (maybeReader readAwsRoleSessionDuration)
+    (long "duration" <> short 'd' <> metavar "DURATION" <>
+     help "AWS Session Duration. Must be between '1h' and '12h'.")
+
 cmdSource :: Mod CommandFields Command
 cmdSource = command "source" infos
   where
@@ -105,9 +127,9 @@ cmdAws :: Env -> Mod CommandFields Command
 cmdAws env = command "aws" infos
   where
     infos = info (options <**> helper) desc
-    desc = progDesc "Set AWS environment. This feature is in BETA."
+    desc = progDesc "Set AWS environment."
     options =
-      Aws <$> awsProfileOpt env <*> execCommandArg
+      Aws <$> awsProfileOpt env <*> awsRoleSessionDurationOpt <*> execCommandArg
 
 cmdKube :: Mod CommandFields Command
 cmdKube = command "kube" infos
